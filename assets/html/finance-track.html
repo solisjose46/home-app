@@ -1,0 +1,60 @@
+{{define "finance-track"}}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Salazar</title>
+</head> 
+
+<body>
+    <div>
+        <div>
+            <div>
+                <h1>Salazar</h1>
+            </div>
+            <div>
+                <form action="/logout" method="post">
+                    <button type="submit">Logout</button>
+                </form>
+            </div>
+        </div>
+        {{with .serverResponse}}
+        {{template "serverResponse" .serverResponse}}
+        {{end}}
+    
+        {{with .financeConfirm}}
+        {{template "financeConfirm" .financeConfirm}}
+        {{end}}
+        <div>
+            <div>
+                {{.Month}}
+            </div>
+            {{range .}}
+            <div>
+                <div>{{.Category}}</div>
+                <div>
+                    <div>bar here</div>
+                    <div>{{.Balance}}/{{.Limit}}</div>
+                </div>
+            </div>
+            {{end}}
+        </div>
+        <div>
+            <form action="/finance-track" method="post">
+                <label for="expense-name">Name</label>
+                <input type="text" placeholder="Enter expense name" name="expense-name" required>
+                <label for="amount">Amount</label>
+                <input type="text" placeholder="Enter expense amount" name="amount" required>
+                <label for="category">Category</label>
+                <select id="category" name="category">
+                    <option value="pdo">Phoenix Dining</option>
+                    <option value="pg">Phoenix Grocery</option>
+                    <option value="sdo">Seattle Dining</option>
+                    <option value="sg">Seattle Grocery</option>
+                  </select>
+                <button type="submit">Add</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}
