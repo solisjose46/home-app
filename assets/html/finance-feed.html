@@ -1,0 +1,42 @@
+{{define "finance-feed"}}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Salazar</title>
+</head> 
+
+<body>
+    <div>
+        <div>
+            <div>
+                <h1>Salazar</h1>
+            </div>
+            <div>
+                <form action="/logout" method="post">
+                    <button type="submit">Logout</button>
+                </form>
+            </div>
+        </div>
+        {{with .serverResponse}}
+        {{template "serverResponse" .ServerResponse}}
+        {{end}}
+    
+        {{with .financeConfirm}}
+        {{template "financeConfirm" .FinanceConfirm}}
+        {{end}}
+
+        {{range .Expenses}}
+        <div>
+            <div>
+                <div>.User</div>
+                <div>edit icon here</div>
+            </div>
+            <div>
+                Spent ${{.Amount}} on {{.ExpenseName}} @ {{.Datetime}} [{{.Category}}]
+            </div>
+        </div>
+        {{end}}
+    </div>
+</body>
+</html>
+{{end}}

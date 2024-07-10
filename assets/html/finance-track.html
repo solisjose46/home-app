@@ -17,27 +17,37 @@
                 </form>
             </div>
         </div>
-        {{with .serverResponse}}
-        {{template "serverResponse" .serverResponse}}
+
+        {{with .ServerResponse}}
+        {{template "server-response" .ServerResponse}}
         {{end}}
     
-        {{with .financeConfirm}}
-        {{template "financeConfirm" .financeConfirm}}
+        {{with .FinanceConfirm}}
+        {{template "finance-confirm" .FinanceConfirm}}
         {{end}}
+
         <div>
+            <div class="finance-selected">track</div>
             <div>
-                {{.Month}}
+                <form action="/finance-feed" method="get">
+                    <button type="submit">feed</button>
+                </form>
             </div>
-            {{range .}}
-            <div>
-                <div>{{.Category}}</div>
-                <div>
-                    <div>bar here</div>
-                    <div>{{.Balance}}/{{.Limit}}</div>
-                </div>
-            </div>
-            {{end}}
         </div>
+        <div>
+            {{.Month}}
+        </div>
+
+        {{range .Categories}}
+        <div>
+            <div>{{.Name}}</div>
+            <div>
+                <!-- chart js for bar implementation? -->
+                <div>bar here</div> 
+                <div>{{.Balance}}/{{.Limit}}</div>
+            </div>
+        </div>
+        {{end}}
         <div>
             <form action="/finance-track" method="post">
                 <label for="expense-name">Name</label>
