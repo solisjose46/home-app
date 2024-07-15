@@ -1,70 +1,48 @@
-{{define "finance-track"}}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Salazar</title>
-</head> 
-
-<body>
+{{ define "finance-track" }}
+<div class="finance-substate">
+    {{ if .FinanceTrackConfirm }}
+    {{ template "finance-track-confirm" .FinanceTrackConfirm }}
+    {{ else if .ServerResponse }}
+    {{ template "server-response" }}
+    {{ end }}
     <div>
+        <div>Track</div>
         <div>
-            <div>
-                <h1>Salazar</h1>
-            </div>
-            <div>
-                <form action="/logout" method="post">
-                    <button type="submit">Logout</button>
-                </form>
-            </div>
-        </div>
-
-        {{with .ServerResponse}}
-        {{template "server-response" .ServerResponse}}
-        {{end}}
-    
-        {{with .FinanceConfirm}}
-        {{template "finance-confirm" .FinanceConfirm}}
-        {{end}}
-
-        <div>
-            <div class="finance-selected">track</div>
-            <div>
-                <form action="/finance-feed" method="get">
-                    <button type="submit">feed</button>
-                </form>
-            </div>
-        </div>
-        <div>
-            {{.Month}}
-        </div>
-
-        {{range .Categories}}
-        <div>
-            <div>{{.Name}}</div>
-            <div>
-                <!-- chart js for bar implementation? -->
-                <div>bar here</div> 
-                <div>{{.Balance}}/{{.Limit}}</div>
-            </div>
-        </div>
-        {{end}}
-        <div>
-            <form action="/finance-track" method="post">
-                <label for="expense-name">Name</label>
-                <input type="text" placeholder="Enter expense name" name="expense-name" required>
-                <label for="amount">Amount</label>
-                <input type="text" placeholder="Enter expense amount" name="amount" required>
-                <label for="category">Category</label>
-                <select id="category" name="category">
-                    <option value="pdo">Phoenix Dining</option>
-                    <option value="pg">Phoenix Grocery</option>
-                    <option value="sdo">Seattle Dining</option>
-                    <option value="sg">Seattle Grocery</option>
-                  </select>
-                <button type="submit">Add</button>
-            </form>
+            <button hx-get="/finance/feed">Feed</button>
         </div>
     </div>
-</body>
-</html>
-{{end}}
+    <div>
+        <h3>
+            {{ .Month }}
+        </h3>
+    </div>
+    <div>
+        {{ range .Categories }}
+        <div>
+            <div>{{ .Name }}</div>
+            <div>
+                <div>Bar here</div>
+                <div>{{ .Balance }}/{{ .Limit }}</div>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+    <div>
+		<form hx-post="/finance/track" hx-target="#finance-substate" hx-swap="outerHTML">
+			<label for="name">Name</label>
+			<input type="text" id="name" name="name" required>
+			<label for="amount">Amount</label>
+			<input type="number" id="amount" name="amount" step="0.01" required>
+			<label for="category">Category</label>
+			<select id="category" name="category" required>
+				<option value="sdo">Sea dine out</option>
+				<option value="sg">Sea groceries</option>
+				<option value="pdo">Phx dine out</option>
+                <option value="sc">Sea cleaning</option>
+                <option value="pg">Phx groceries</option>
+			</select>
+			<input type="submit" value="Submit">
+		</form>
+    </div>
+</div>
+{{ end }}

@@ -1,42 +1,38 @@
-{{define "finance-feed"}}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Salazar</title>
-</head> 
-
-<body>
+{{ define "finance-track" }}
+<div class="finance-substate">
+    {{ if .FinanceFeedEdit }}
+    {{ template "finance-feed-edit" .FinanceFeedEdit }}
+    {{ else if .FinanceFeedConfirm }}
+    {{ template "finance-feed-confirm" .FinanceFeedConfirm }}
+    {{ else }}
+    {{ template "server-response" .ServerResponse }}
+    {{ end }}
+    <div>
+        <div><button hx-get="/finance/track">Track</button></div>
+        <div>Feed</div>
+    </div>
+    {{ if .Expenses }}
+    {{ range .Expenses }}
     <div>
         <div>
+            <div>{{ .User }}</div>
+            {{ if .IsOwner }}
             <div>
-                <h1>Salazar</h1>
-            </div>
-            <div>
-                <form action="/logout" method="post">
-                    <button type="submit">Logout</button>
+                <form hx-post="/finance/feed/edit" hx-target="#finance-substate" hx-swap="outerHTML">
+                    <input type="hidden" name="expense-id" value="{{ .ExpenseId }}" readonly>
+                    <input type="hidden" name="name" value="{{ .Name }}" readonly>
+                    <input type="hidden" name="amount" value="{{ .Amount }}" readonly>
+                    <input type="hidden" name="category" value="{{ .Category }}" readonly>
+                    <button type="submit">Edit</button>
                 </form>
             </div>
+            {{ end }}
         </div>
-        {{with .serverResponse}}
-        {{template "serverResponse" .ServerResponse}}
-        {{end}}
-    
-        {{with .financeConfirm}}
-        {{template "financeConfirm" .FinanceConfirm}}
-        {{end}}
-
-        {{range .Expenses}}
         <div>
-            <div>
-                <div>.User</div>
-                <div>edit icon here</div>
-            </div>
-            <div>
-                Spent ${{.Amount}} on {{.ExpenseName}} @ {{.Datetime}} [{{.Category}}]
-            </div>
+            Spent ${{ .Amount }} on {{ .Name }} @ {{ .Datetime }} [{{ .Category }}]
         </div>
-        {{end}}
     </div>
-</body>
-</html>
-{{end}}
+    {{ end }}
+    {{ end }}
+</div>
+{{ end }}

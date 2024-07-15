@@ -1,6 +1,14 @@
-{{define "server-response"}}
+{{ define "server-response" }}
 <div>
-    <div {{if .IsSuccess}}class="server-response-succ"{{else}}class="server-response-fail"{{end}}>.Message</div>
-    <div>x</div>
+    <div>
+        <div></div>
+        <div hx-get="{{ .ReturnEndpoint }}">X</div>
+    </div>
+    <div>
+        <div>{{ .Message }}</div>
+        <div>
+            <button hx-get="{{ .ReturnEndpoint }}">Ok</button>
+        </div>
+    </div>
 </div>
-{{end}}
+{{ end }}

@@ -8,18 +8,19 @@
 <body>
     <div>
         <div>
-            <h2>Family</h2>
-        </div>
-        <div hx-get="/finance">
+            <h2 hx-get="/home">
+                Family
+            </h2>
             <div>
-                Finance
-            </div>
-            <div>
-                Track expenses and view family spending activity.
+                <button hx-post="/logout"></button>
             </div>
         </div>
+        {{ if .FinanceTrack }}
+        {{ template "finance-track" .FinanceTrack }}
+        {{ else  }}
+        {{ template "finance-feed" .FinanceFeed }}
+        {{ end }}
         <div>
-            <button hx-post="/logout">logout</button>
         </div>
     </div>
 </body>

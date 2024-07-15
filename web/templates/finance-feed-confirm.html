@@ -1,0 +1,33 @@
+{{ define "finance-feed-confirm" }}
+<div>
+    <div>
+        <div>Confirm</div>
+        <div hx-get="/finance/feed">X</div>
+    </div>
+    <div>
+        <div>Are you sure you want to update the following expense?</div>
+        <div>
+            <div>From</div>
+            <div>To</div>
+        </div>
+        <div>
+            <div>{{ .OldExpense.Name }} {{ .OldExpense.Amount }} [{{ .OldExpense.Category }}]</div>
+            <div>{{ .NewExpense.Name }} {{ .NewExpense.Amount }} [{{ .NewExpense.Category }}]</div>
+        </div>
+        <div>
+            <div>
+                <form hx-post="/finance/feed/confirm" hx-target="#finance-substate" hx-swap="outerHTML">
+                    <input type="hidden" name="expense-id" value="{{ .OldExpense.ExpenseId }}" readonly>
+                    <input type="hidden" name="name" value="{{ .NewExpense.Name }}" readonly>
+                    <input type="hidden" name="amount" value="{{ .NewExpense.Amount }}" readonly>
+                    <input type="hidden" name="category" value="{{ .NewExpense.Category }}" readonly>
+                    <button type="submit">Yes</button>
+                </form>
+            </div>
+            <div>
+                <button hx-get="/finance/feed">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }}

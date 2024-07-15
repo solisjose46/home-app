@@ -1,0 +1,25 @@
+{{ define "finance-track-confirm" }}
+<div>
+    <div>
+        <div>Confirm</div>
+        <div hx-get="/finance/track">X</div>
+    </div>
+    <div>
+        <div>Are you sure you want to add the following expense?</div>
+        <div>{{ .Name }} {{ .Amount }} [{{ .Category }}]</div>
+        <div>
+            <div>
+                <form hx-post="/finance/track/confirm" hx-target="#finance-substate" hx-swap="outerHTML">
+                    <input type="hidden" name="name" value="{{ .Name }}" readonly>
+                    <input type="hidden" name="amount" value="{{ .Amount }}" readonly>
+                    <input type="hidden" name="category" value="{{ .Category }}" readonly>
+                    <button type="submit">Yes</button>
+                </form>
+            </div>
+            <div>
+                <button hx-get="/finance/track">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }}

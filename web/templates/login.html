@@ -1,26 +1,31 @@
-{{define "login"}}
+{{ define "login" }}
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <title>Salazar</title>
-</head> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
 <body>
     <div>
-        {{with .}}
-        {{template "server-response" .}}
-        {{end}}
-        <div><h1>Login</h1></div>
+        {{ if .ServerResponse }}
+        {{ template "server-response" . }}
+        {{ end }}
         <div>
-            <form action="/login" method="post">
+            <h2>Login</h2>
+        </div>
+        <div>
+            <form>
                 <label for="username">Username</label>
-                <input type="text" placeholder="Enter Username" name="username" required>
+                <input type="text" id="username" name="username" placeholder="username" required>
                 <label for="password">Password</label>
-                <input type="password" placeholder="Enter Password" name="password" required>
+                <input type="password" id="password" name="password" placeholder="Password" required><br>
                 <button type="submit">Login</button>
+                <button type="reset" class="reset">Reset</button>
             </form>
         </div>
     </div>
+
 </body>
 </html>
-{{end}}
+{{ end }}
