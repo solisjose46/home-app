@@ -1,7 +1,7 @@
 -- Create the users table
 CREATE TABLE IF NOT EXISTS users (
     userId INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL,
+    username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
