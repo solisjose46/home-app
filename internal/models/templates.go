@@ -1,38 +1,59 @@
 package templates
 
-import (
-	"fmt"
-	"time"
-)
-
-const (
-	financeConfirmCreate = "Are you sure you want to create this expense?"
-	financeConfirmUpdate = "Are you sure you want to update this expense?"
-)
-
-type serverResponse struct {
-	Message string
-	IsSuccess bool
+type ServerResponse struct {
+	Message        string
+	ReturnEndpoint string
 }
 
-type expense struct {
-	Name string
-	User string
-	Amount float64
-	Date time.Time
+type Expense struct {
+	ExpenseId string
+	Name      string
+	Amount    float64
+	Category  string
+	User      string
+	UserId    string
+	Datetime  time.Time
+	IsOwner   bool
 }
 
-type category struct {
-	Name string
-	Limit float64
+type Category struct {
+	Name    string
 	Balance float64
+	Limit   float64
 }
 
-type financeTrack struct {
-	Month string 
-	Categories []category
+type Login struct {
+	ServerResponse ServerResponse
 }
 
-type financeFeed struct {
-	Expenses []expense
+type FinanceTrack struct {
+	Month           string
+	Categories      []Category
+	ServerResponse  ServerResponse
+	FinanceTrackConfirm FinanceTrackConfirm
+}
+
+type FinanceFeed struct {
+	ServerResponse    ServerResponse
+	FinanceFeedEdit   FinanceFeedEdit
+	FinanceFeedConfirm FinanceFeedConfirm
+	Expenses          []Expense
+}
+
+type Finance struct {
+	FinanceTrack FinanceTrack
+	FinanceFeed FinanceFeed
+}
+
+type FinanceTrackConfirm struct {
+	Expense Expense
+}
+
+type FinanceFeedEdit struct {
+	Expense Expense
+}
+
+type FinanceFeedConfirm struct {
+	OldExpense Expense
+	NewExpense Expense
 }
