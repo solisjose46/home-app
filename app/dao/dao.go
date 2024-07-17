@@ -117,3 +117,12 @@ func GetExpensesForCurrentMonth(userId string) ([]models.Expense, error) {
 
     return expenses, nil
 }
+
+// todo
+// func GetExpense(expenseId string) (models.Expense, error) {
+//     // query database for expense using expense id
+
+//     return &models.Expense{
+//         ExpenseId: expenseId
+//     }
+// }
