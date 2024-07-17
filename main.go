@@ -4,7 +4,7 @@ import (
     "log"
     "fmt"
     "net/http"
-	"home-app/internal/db"
+	"home-app/app/dao"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -13,12 +13,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	
-	err := db.InitDB() 
+	err := dao.InitDB() 
     
     if err != nil {
         log.Fatalf("Error initializing database: %v", err)
     }
-    defer db.CloseDB()
+    defer dao.CloseDB()
 
     http.HandleFunc("/", handler)
     fmt.Println("Server listening on port 8080...")

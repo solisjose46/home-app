@@ -6,7 +6,7 @@ import (
     "errors"
     "golang.org/x/crypto/bcrypt"
     _ "github.com/mattn/go-sqlite3"
-    "home-app/internal/models"
+    "home-app/app/models"
 )
 
 const (
@@ -47,7 +47,7 @@ func ValidateUser(userId int, username, password string) (bool, error) {
     return true, nil
 }
 
-func AddExpense(expense templates.Expense) (bool, error) {
+func AddExpense(expense models.Expense) (bool, error) {
     _, err := dao.Exec("INSERT INTO expenses (userId, name, amount, category, createdAt) VALUES (?, ?, ?, ?, ?)", 
         expense.UserId, expense.Name, expense.Amount, expense.Category, expense.Datetime)
     if err != nil {
@@ -57,7 +57,7 @@ func AddExpense(expense templates.Expense) (bool, error) {
     return true, nil
 }
 
-func UpdateExpense(expense templates.Expense) (bool, error) {
+func UpdateExpense(expense models.Expense) (bool, error) {
     var userId string
 
     err := dao.QueryRow("SELECT userId FROM expenses WHERE expenseId = ?", expense.ExpenseId).Scan(&userId)
@@ -78,22 +78,37 @@ func UpdateExpense(expense templates.Expense) (bool, error) {
     return true, nil
 }
 
-func GetExpensesForCurrentMonth(userId int) ([]templates.Expense, error) {
-    currentMonth := time.Now().Format("2006-01")
-    rows, err := dao.Query("SELECT expenseId, userId, name, amount, category, createdAt FROM expenses WHERE strftime('%Y-%m', createdAt) = ? AND userId = ? ORDER BY createdAt DESC", currentMonth, userId)
+func GetExpensesForCurrentMonth(userId string) ([]models.Expense, error) {
+    now := time.Now()
+    firstOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+
+    nextMonth := firstOfMonth.AddDate(0, 1, 0)
+
+    startOfMonthStr := firstOfMonth.Format("2006-01-02 15:04:05")
+    nextMonthStr := nextMonth.Format("2006-01-02 15:04:05")
+
+    // Query to get expenses within the current month
+    rows, err := dao.Query(
+        "SELECT expenseId, userId, name, amount, category, createdAt FROM expenses WHERE createdAt >= ? AND createdAt < ? ORDER BY createdAt DESC",
+        startOfMonthStr, nextMonthStr)
     if err != nil {
         return nil, err
     }
     defer rows.Close()
 
-    var expenses []templates.Expense
+    var expenses []models.Expense
     for rows.Next() {
-        var expense templates.Expense
+        var expense models.Expense
         err := rows.Scan(&expense.ExpenseId, &expense.UserId, &expense.Name, &expense.Amount, &expense.Category, &expense.Datetime)
         if err != nil {
             return nil, err
         }
-        expenses = append(expenses, expense)
+
+        if expense.ExpenseId == userId {
+            expense.IsOwner = true
+        } else {
+            expense.IsOwner = false
+        }
     }
 
     if err = rows.Err(); err != nil {
