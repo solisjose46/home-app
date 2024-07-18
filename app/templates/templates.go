@@ -20,9 +20,22 @@ const (
 	htmlLogin = "web/templates/login.html"
 	htmlServerResponse = "web/templates/server-response.html"
 	// todo make template names consts
-
-	// return endpoints const should go with handlers.go
 )
+
+func GetLogin() (string, error) {
+    tmpl, err := template.ParseFiles(htmlLogin, htmlServerResponse)
+    if err != nil {
+        return "", err
+    }
+
+    var buf bytes.Buffer
+    err = tmpl.ExecuteTemplate(&buf, "login", nil)
+    if err != nil {
+        return "", err
+    }
+
+    return buf.String(), nil
+}
 
 func GetLoginServerResponse(serverResponse ServerResponse) (string, error) {
 
@@ -44,9 +57,7 @@ func GetLoginServerResponse(serverResponse ServerResponse) (string, error) {
     return buf.String(), nil
 }
 
-// GetFinanceTrack retrieves current month expenses and embeds them in FinanceTrack template.
 func GetFinanceTrack(userId string) (string, error) {
-    // Get current month expenses
     expenses, err := dao.GetExpensesForCurrentMonth(userId)
     if err != nil {
         return "", err
@@ -60,7 +71,6 @@ func GetFinanceTrack(userId string) (string, error) {
         Expenses: expenses,
     }
 
-    // Parse templates
     tmpl, err := template.ParseFiles(htmlFinanceTrack, htmlFinance)
     if err != nil {
         return "", err
@@ -75,7 +85,6 @@ func GetFinanceTrack(userId string) (string, error) {
     return buf.String(), nil
 }
 
-// GetFinanceTrackConfirm embeds an expense in FinanceTrackConfirm template.
 func GetFinanceTrackConfirm(expense models.Expense) (string, error) {
     tmpl, err := template.ParseFiles(htmlFinanceTrackConfirm, htmlFinanceTrack)
     if err != nil {
@@ -95,7 +104,6 @@ func GetFinanceTrackConfirm(expense models.Expense) (string, error) {
     return buf.String(), nil
 }
 
-// GetFinanceTrackServerResponse embeds a server response in ServerResponse template and returns it in FinanceTrack template.
 func GetFinanceTrackServerResponse(serverResponse models.ServerResponse) (string, error) {
     tmpl, err := template.ParseFiles(htmlServerResponse, htmlFinanceTrack)
     if err != nil {
@@ -111,7 +119,6 @@ func GetFinanceTrackServerResponse(serverResponse models.ServerResponse) (string
     return buf.String(), nil
 }
 
-// GetFinanceFeed embeds FinanceFeed template in Finance template and returns it.
 func GetFinanceFeed() (string, error) {
     tmpl, err := template.ParseFiles(htmlFinanceFeed, htmlFinance)
     if err != nil {
@@ -127,7 +134,6 @@ func GetFinanceFeed() (string, error) {
     return buf.String(), nil
 }
 
-// GetFinanceFeedEdit embeds an expense in FinanceFeedEdit template and returns it in FinanceFeed template.
 func GetFinanceFeedEdit(expense models.Expense) (string, error) {
     tmpl, err := template.ParseFiles(htmlFinanceFeedEdit, htmlFinanceFeed)
     if err != nil {
@@ -169,7 +175,6 @@ func GetFinanceFeedConfirm(newExpense models.Expense) (string, error) {
     return buf.String(), nil
 }
 
-// GetFinanceFeedServerResponse embeds a server response in ServerResponse template and returns it in FinanceFeed template.
 func GetFinanceFeedServerResponse(serverResponse models.ServerResponse) (string, error) {
     tmpl, err := template.ParseFiles(htmlServerResponse, htmlFinanceFeed)
     if err != nil {

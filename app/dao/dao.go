@@ -31,7 +31,7 @@ func CloseDB() {
     }
 }
 
-func ValidateUser(userId int, username, password string) (bool, error) {
+func ValidateUser(username, password string) (bool, error) {
     var hashedPassword string
 
     err := dao.QueryRow("SELECT password FROM users WHERE username = ?", username).Scan(&hashedPassword)
@@ -47,9 +47,21 @@ func ValidateUser(userId int, username, password string) (bool, error) {
     return true, nil
 }
 
+func GetUserId(username string) (string, error) {
+    var userId string
+
+    err := dao.QueryRow("SELECT userId FROM users WHERE username = ?", username).Scan(&userId)
+
+    if err != nil {
+        return "", err
+    }
+    
+    return userId, nil
+}
+
 func AddExpense(expense models.Expense) (bool, error) {
-    _, err := dao.Exec("INSERT INTO expenses (userId, name, amount, category, createdAt) VALUES (?, ?, ?, ?, ?)", 
-        expense.UserId, expense.Name, expense.Amount, expense.Category, expense.Datetime)
+    _, err := dao.Exec("INSERT INTO expenses (userId, name, amount, category) VALUES (?, ?, ?, ?)", 
+        expense.UserId, expense.Name, expense.Amount, expense.Category)
     if err != nil {
         return false, err
     }
