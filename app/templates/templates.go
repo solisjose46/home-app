@@ -56,7 +56,7 @@ func GetLoginServerResponse(serverResponse models.ServerResponse) (string, error
 }
 
 func GetFinanceTrack(userId string) (string, error) {
-    expenses, err := dao.GetExpensesForCurrentMonth(userId)
+    categories, err := dao.GetCategoriesForCurrentMonth() // todo implement this
     if err != nil {
         return "", err
     }
@@ -64,9 +64,11 @@ func GetFinanceTrack(userId string) (string, error) {
     // Prepare data for the template
     now := time.Now()
     month := now.Format("January 2006")
-    financeTrack := models.FinanceTrack{
-        Month: month,
-        Expenses: expenses,
+    finance := models.Finance{
+        FinanceTrack: models.FinanceTrack{
+            Month: month,
+            Categories: categories,
+        },
     }
 
     tmpl, err := template.ParseFiles(htmlFinanceTrack, htmlFinance)
@@ -89,12 +91,15 @@ func GetFinanceTrackConfirm(expense models.Expense) (string, error) {
         return "", err
     }
 
-    financeTrackConfirm := models.FinanceTrackConfirm{
-        Expense: expense,
+    financeTrack := {
+        Categories: dao.GetCategoriesForCurrentMonth(),
+        FinanceTrackConfirm: models.FinanceTrackConfirm{
+            Expense: expense,
+        },
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, "finance-track-confirm", financeTrackConfirm)
+    err = tmpl.ExecuteTemplate(&buf, "finance-track", financeTrack)
     if err != nil {
         return "", err
     }
@@ -108,8 +113,13 @@ func GetFinanceTrackServerResponse(serverResponse models.ServerResponse) (string
         return "", err
     }
 
+    financeTrack := {
+        Categories: dao.GetCategoriesForCurrentMonth(),
+        ServerResponse: serverResponse
+    }
+
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, "server-response", serverResponse)
+    err = tmpl.ExecuteTemplate(&buf, "finance-track", financeTrack)
     if err != nil {
         return "", err
     }
@@ -117,14 +127,20 @@ func GetFinanceTrackServerResponse(serverResponse models.ServerResponse) (string
     return buf.String(), nil
 }
 
-func GetFinanceFeed() (string, error) {
+func GetFinanceFeed(userId string) (string, error) {
     tmpl, err := template.ParseFiles(htmlFinanceFeed, htmlFinance)
     if err != nil {
         return "", err
     }
 
+    finance := models.Finance{
+        FinanceFeed: models.FinanceFeed{
+            Expenses: dao.GetExpensesForCurrentMonth(userId)
+        }
+    }
+
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, "finance-feed", nil)
+    err = tmpl.ExecuteTemplate(&buf, "finance", finance)
     if err != nil {
         return "", err
     }
@@ -138,12 +154,15 @@ func GetFinanceFeedEdit(expense models.Expense) (string, error) {
         return "", err
     }
 
-    financeFeedEdit := models.FinanceFeedEdit{
-        Expense: expense,
+    financeFeed := models.FinanceFeed{
+        Expenses: dao.GetExpensesForCurrentMonth(expense.UserId),
+        FinanceFeedEdit: models.FinanceFeedEdit{
+            Expense: expense,
+        }
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, "finance-feed-edit", financeFeedEdit)
+    err = tmpl.ExecuteTemplate(&buf, "finance-feed", financeFeed)
     if err != nil {
         return "", err
     }
@@ -159,13 +178,16 @@ func GetFinanceFeedConfirm(newExpense models.Expense) (string, error) {
 
 	oldExpense := dao.GetExpense(newExpense.ExpenseId)
 
-    financeFeedConfirm := models.FinanceFeedConfirm{
-        OldExpense: oldExpense,
-        NewExpense: newExpense,
+    financeFeed := models.FinanceFeed{
+        Expenses: dao.GetExpensesForCurrentMonth(newExpense.UserId)
+        FinanceFeedConfirm: models.FinanceFeedConfirm{
+            OldExpense: oldExpense,
+            NewExpense: newExpense,
+        }
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, "finance-feed-confirm", financeFeedConfirm)
+    err = tmpl.ExecuteTemplate(&buf, "finance-feed", financeFeed)
     if err != nil {
         return "", err
     }
@@ -179,8 +201,13 @@ func GetFinanceFeedServerResponse(serverResponse models.ServerResponse) (string,
         return "", err
     }
 
+    financeFeed := models.FinanceFeed{
+        Expenses: dao.GetExpensesForCurrentMonth(newExpense.UserId)
+        ServerResponse: serverResponse
+    }
+
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, "server-response", serverResponse)
+    err = tmpl.ExecuteTemplate(&buf, "finance-feed", financeFeed)
     if err != nil {
         return "", err
     }

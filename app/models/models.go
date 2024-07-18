@@ -2,6 +2,19 @@ package models
 
 import "time"
 
+const (
+	CategorySdo = "sdo"
+	SdoName = "Seattle Dine out"
+	CategorySg = "sg"
+	SgName = "Seattle Groceries"
+	CategoryPdo = "pdo"
+	PdoName = "Phx Dine Out"
+	CategorySc = "sc"
+	ScName = "Seattle Cleaning"
+	CategoryPg = "pg"
+	PgName = "Phx Groceries"
+)
+
 type ServerResponse struct {
 	Message        string
 	ReturnEndpoint string

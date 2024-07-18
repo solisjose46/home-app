@@ -151,3 +151,7 @@ func GetExpense(expenseId string) (models.Expense, error) {
 
     return expense, nil
 }
+
+// func GetCategoriesForCurrentMonth() (models.Categories[], error) {
+//     return nil, nil
+// }
