@@ -118,11 +118,24 @@ func GetExpensesForCurrentMonth(userId string) ([]models.Expense, error) {
     return expenses, nil
 }
 
-// todo
-// func GetExpense(expenseId string) (models.Expense, error) {
-//     // query database for expense using expense id
 
-//     return &models.Expense{
-//         ExpenseId: expenseId
-//     }
-// }
+func GetExpense(expenseId string) (models.Expense, error) {
+    var expense models.Expense
+
+    err := dao.QueryRow("SELECT expenseId, userId, name, amount, category, createdAt FROM expenses WHERE expenseId = ?", expenseId).Scan(
+        &expense.ExpenseId, 
+        &expense.UserId, 
+        &expense.Name, 
+        &expense.Amount, 
+        &expense.Category, 
+        &expense.Datetime,
+    )
+    if err != nil {
+        if err == sql.ErrNoRows {
+            return expense, errors.New("expense not found")
+        }
+        return expense, err
+    }
+
+    return expense, nil
+}
