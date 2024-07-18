@@ -3,7 +3,6 @@ package templates
 import (
     "bytes"
     "html/template"
-    "path/filepath"
     "time"
     "home-app/app/models"
     "home-app/app/dao"
@@ -19,7 +18,6 @@ const (
 	htmlHome = "web/templates/home.html"
 	htmlLogin = "web/templates/login.html"
 	htmlServerResponse = "web/templates/server-response.html"
-	// todo make template names consts
 )
 
 func GetLogin() (string, error) {
@@ -37,14 +35,14 @@ func GetLogin() (string, error) {
     return buf.String(), nil
 }
 
-func GetLoginServerResponse(serverResponse ServerResponse) (string, error) {
+func GetLoginServerResponse(serverResponse models.ServerResponse) (string, error) {
 
     tmpl, err := template.ParseFiles(htmlLogin, htmlServerResponse)
     if err != nil {
         return "", err
     }
 
-    loginData := Login{
+    loginData := models.Login{
         ServerResponse: serverResponse,
     }
 
