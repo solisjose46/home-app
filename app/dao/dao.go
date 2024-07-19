@@ -152,6 +152,42 @@ func GetExpense(expenseId string) (models.Expense, error) {
     return expense, nil
 }
 
-// func GetCategoriesForCurrentMonth() (models.Categories[], error) {
-//     return nil, nil
-// }
+func GetCategoriesForCurrentMonth() ([]models.Category, error) {
+    now := time.Now()
+    firstOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+    nextMonth := firstOfMonth.AddDate(0, 1, 0)
+
+    startOfMonthStr := firstOfMonth.Format("2006-01-02 15:04:05")
+    nextMonthStr := nextMonth.Format("2006-01-02 15:04:05")
+
+    query := `
+        SELECT c.categoryName, SUM(e.amount) as balance, c.categoryLimit 
+        FROM categories c
+        JOIN expenses e ON c.categoryId = e.categoryId
+        WHERE e.createdAt >= ? AND e.createdAt < ?
+        GROUP BY c.categoryName, c.categoryLimit
+    `
+
+    rows, err := dao.Query(query, startOfMonthStr, nextMonthStr)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var categories []models.Category
+    for rows.Next() {
+        var category models.Category
+        err := rows.Scan(&category.Name, &category.Balance, &category.Limit)
+        if err != nil {
+            return nil, err
+        }
+        categories = append(categories, category)
+    }
+
+    if err = rows.Err(); err != nil {
+        return nil, err
+    }
+
+    return categories, nil
+}
+
