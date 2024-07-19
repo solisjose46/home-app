@@ -1,25 +1,28 @@
 package handlers
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 	"home-app/app/dao"
 	"home-app/app/models"
 	"home-app/app/templates"
+	"home-app/app/util"
+	"strconv"
 	"github.com/gorilla/sessions"
 )
 
 var store = sessions.NewCookieStore([]byte("something-very-secret"))
 
 const (
-	loginEndpoint					= "/login"
-	homeEndpoint					= "/home"
-	financeEndpoint					= "/finance"
-	financeTrackEndpoint			= "/finance/track"
-	financeTrackConfirmEndpoint		= "/finance/track/confirm"
-	financeFeedEndpoint				= "/finance/feed"
-	financeFeedConfirmPoint			= "/finance/feed/confirm"
-	financeFeedEditEndpoint			= "/finance/feed/edit"
+	LogoutEndpoint					= "/logout"
+	LoginEndpoint					= "/login"
+	HomeEndpoint					= "/home"
+	FinanceEndpoint					= "/finance"
+	FinanceTrackEndpoint			= "/finance/track"
+	FinanceTrackConfirmEndpoint		= "/finance/track/confirm"
+	FinanceFeedEndpoint				= "/finance/feed"
+	FinanceFeedConfirmPoint			= "/finance/feed/confirm"
+	FinanceFeedEditEndpoint			= "/finance/feed/edit"
 )
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -30,12 +33,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := store.Get(r, "session-name")
 	if session.Values["username"] != nil {
-		http.Redirect(w, r, homeEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, HomeEndpoint, http.StatusSeeOther)
 		return
 	}
 
     if r.Method == http.MethodGet {
         response, err := templates.GetLogin()
+		fmt.Println("ERROR here")
         if err != nil {
             http.Error(w, "Internal server error", http.StatusInternalServerError)
             return
@@ -50,7 +54,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if username == "" || password == "" {
 		loginServerResponse, _ := templates.GetLoginServerResponse(models.ServerResponse{
 			Message: "Invalid input",
-			ReturnEndpoint: loginEndpoint,
+			ReturnEndpoint: LoginEndpoint,
 		})
 		w.Write([]byte(loginServerResponse))
 		return
@@ -58,19 +62,26 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	valid, err := dao.ValidateUser(username, password)
 	if err != nil || !valid {
-		response, _ := templates.GetLoginServerResponse(models.ServerResponse{
-			Message: "Bad login",
-			ReturnEndpoint: loginEndpoint
+		response, _ := templates.GetLoginServerResponse(
+			models.ServerResponse{
+				Message: "Bad login",
+				ReturnEndpoint: LoginEndpoint,
 		})
 		w.Write([]byte(response))
 		return
 	}
 
+	userId, err := dao.GetUserId(username)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	session.Values["username"] = username
-	session.Values["userId"] = dao.GetUserId(username)
+	session.Values["userId"] = userId
 	session.Save(r, w)
 
-	http.Redirect(w, r, homeEndpoint, http.StatusSeeOther)
+	http.Redirect(w, r, HomeEndpoint, http.StatusSeeOther)
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +94,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	session.Options.MaxAge = -1
 	session.Save(r, w)
 
-	http.Redirect(w, r, loginEndpoint, http.StatusSeeOther)
+	http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
@@ -94,9 +105,11 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := store.Get(r, "session-name")
 	if session.Values["username"] == nil {
-		http.Redirect(w, r, loginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
 		return
 	}
+
+	htmlHome := util.GetFilePath(templates.TmplPath, templates.TmplHome, templates.HtmlExtension)
 
 	http.ServeFile(w, r, htmlHome)
 }
@@ -109,11 +122,11 @@ func FinanceHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := store.Get(r, "session-name")
 	if session.Values["username"] == nil {
-		http.Redirect(w, r, loginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
-	http.Redirect(w, r, financeTrackEndpoint, http.StatusSeeOther)
+	http.Redirect(w, r, FinanceTrackEndpoint, http.StatusSeeOther)
 }
 
 func FinanceTrackHandler(w http.ResponseWriter, r *http.Request) {
@@ -124,7 +137,7 @@ func FinanceTrackHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := store.Get(r, "session-name")
 	if session.Values["username"] == nil {
-		http.Redirect(w, r, loginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
@@ -141,10 +154,17 @@ func FinanceTrackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Handle POST method: gather expense data from form and return confirmation page
+
+	amount, err := strconv.ParseFloat(r.FormValue("amount"), 64)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	expense := models.Expense{
 		UserId:   userId,
 		Name:     r.FormValue("name"),
-		Amount:   r.FormValue("amount"),
+		Amount:   amount,
 		Category: r.FormValue("category"),
 	}
 
@@ -164,14 +184,20 @@ func FinanceTrackConfirmHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := store.Get(r, "session-name")
 	if session.Values["username"] == nil {
-		http.Redirect(w, r, loginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
+		return
+	}
+
+	amount, err := strconv.ParseFloat(r.FormValue("amount"), 64)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	expense := models.Expense{
 		UserId:   session.Values["userId"].(string),
 		Name:     r.FormValue("name"),
-		Amount:   r.FormValue("amount"),
+		Amount:   amount,
 		Category: r.FormValue("category"),
 	}
 
@@ -179,7 +205,7 @@ func FinanceTrackConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	if expense.Name == "" || expense.Amount == 0 || expense.Category == "" {
 		response, _ := templates.GetFinanceTrackServerResponse(models.ServerResponse{
 			Message: "Invalid input",
-			ReturnEndpoint: financeTrackEndpoint,
+			ReturnEndpoint: FinanceTrackEndpoint,
 		})
 		w.Write([]byte(response))
 		return
@@ -189,15 +215,16 @@ func FinanceTrackConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil || !success {
 		response, _ := templates.GetFinanceTrackServerResponse(models.ServerResponse{
 			Message: "Failed to add expense",
-			ReturnEndpoint: financeTrackEndpoint,
+			ReturnEndpoint: FinanceTrackEndpoint,
 		})
 		w.Write([]byte(response))
 		return
 	}
 
-	response, _ := templates.GetFinanceTrackServerResponse(models.ServerResponse{
-		Message: "Expense added successfully",
-		ReturnEndpoint: financeTrackEndpoint
+	response, _ := templates.GetFinanceTrackServerResponse(
+		models.ServerResponse{
+			Message: "Expense added successfully",
+			ReturnEndpoint: FinanceTrackEndpoint,
 	})
 	w.Write([]byte(response))
 }
@@ -210,11 +237,17 @@ func FinanceFeedHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := store.Get(r, "session-name")
 	if session.Values["username"] == nil {
-		http.Redirect(w, r, loginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
-	response, err := templates.GetFinanceFeed()
+	userId, ok:= session.Values["userId"].(string)
+	if !ok {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	response, err := templates.GetFinanceFeed(userId)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -230,7 +263,7 @@ func FinanceFeedPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := store.Get(r, "session-name")
 	if session.Values["username"] == nil {
-		http.Redirect(w, r, loginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
@@ -257,15 +290,22 @@ func FinanceFeedEditHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := store.Get(r, "session-name")
 	if session.Values["username"] == nil {
-		http.Redirect(w, r, loginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
+	amount, err := strconv.ParseFloat(r.FormValue("amount"), 64)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// fix user id validation here
 	expense := models.Expense{
 		ExpenseId: r.FormValue("expenseId"),
 		UserId:    session.Values["userId"].(string),
 		Name:      r.FormValue("name"),
-		Amount:    r.FormValue("amount"),
+		Amount:    amount,
 		Category:  r.FormValue("category"),
 	}
 
@@ -285,23 +325,32 @@ func FinanceFeedConfirmHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := store.Get(r, "session-name")
 	if session.Values["username"] == nil {
-		http.Redirect(w, r, loginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
+	amount, err := strconv.ParseFloat(r.FormValue("amount"), 64)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	userId := session.Values["userId"].(string)
 	expense := models.Expense{
 		ExpenseId: r.FormValue("expenseId"),
-		UserId:    session.Values["userId"].(string),
+		UserId:    userId,
 		Name:      r.FormValue("name"),
-		Amount:    r.FormValue("amount"),
+		Amount:    amount,
 		Category:  r.FormValue("category"),
 	}
 
 	// Validate input
 	if expense.Name == "" || expense.Amount == 0 || expense.Category == "" {
-		response, _ := templates.GetFinanceFeedServerResponse(models.ServerResponse{
-			Message: "Invalid input",
-			ReturnEndpoint: financeFeedEndpoint
+		response, _ := templates.GetFinanceFeedServerResponse(
+			userId,
+			models.ServerResponse{
+				Message: "Invalid input",
+				ReturnEndpoint: FinanceFeedEndpoint,
 		})
 		w.Write([]byte(response))
 		return
@@ -309,17 +358,21 @@ func FinanceFeedConfirmHandler(w http.ResponseWriter, r *http.Request) {
 
 	success, err := dao.UpdateExpense(expense)
 	if err != nil || !success {
-		response, _ := templates.GetFinanceFeedServerResponse(models.ServerResponse{
-			Message: "Failed to update expense",
-			ReturnEndpoint: financeFeedEndpoint
+		response, _ := templates.GetFinanceFeedServerResponse(
+			userId,
+			models.ServerResponse{
+				Message: "Failed to update expense",
+				ReturnEndpoint: FinanceFeedEndpoint,
 		})
 		w.Write([]byte(response))
 		return
 	}
 
-	response, _ := templates.GetFinanceFeedServerResponse(models.ServerResponse{
-		Message: "Expense updated successfully",
-		ReturnEndpoint: financeFeedEndpoint,
+	response, _ := templates.GetFinanceFeedServerResponse(
+		userId,
+		models.ServerResponse{
+			Message: "Expense updated successfully",
+			ReturnEndpoint: FinanceFeedEndpoint,
 	})
 	w.Write([]byte(response))
 }

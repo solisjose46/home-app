@@ -17,19 +17,19 @@ func main() {
     defer dao.CloseDB()
 
     // Route definitions
-    http.HandleFunc(handlers.loginEndpoint, handlers.LoginHandler)
-    http.HandleFunc(handlers.homeEndpoint, handlers.HomeHandler)
-    http.HandleFunc(handlers.financeEndpoint, handlers.FinanceHandler)
-    http.HandleFunc(handlers.financeTrackEndpoint, handlers.FinanceTrackHandler)
-    http.HandleFunc(handlers.financeTrackConfirmEndpoint, handlers.FinanceTrackConfirmHandler)
-    http.HandleFunc(handlers.financeFeedEndpoint, handlers.FinanceFeedHandler)
-    http.HandleFunc(handlers.financeFeedConfirmPoint, handlers.FinanceFeedConfirmHandler)
-    http.HandleFunc(handlers.financeFeedEditEndpoint, handlers.FinanceFeedEditHandler)
-    http.HandleFunc("/logout", handlers.LogoutHandler)
+    http.HandleFunc(handlers.LoginEndpoint, handlers.LoginHandler)
+    http.HandleFunc(handlers.HomeEndpoint, handlers.HomeHandler)
+    http.HandleFunc(handlers.FinanceEndpoint, handlers.FinanceHandler)
+    http.HandleFunc(handlers.FinanceTrackEndpoint, handlers.FinanceTrackHandler)
+    http.HandleFunc(handlers.FinanceTrackConfirmEndpoint, handlers.FinanceTrackConfirmHandler)
+    http.HandleFunc(handlers.FinanceFeedEndpoint, handlers.FinanceFeedHandler)
+    http.HandleFunc(handlers.FinanceFeedConfirmPoint, handlers.FinanceFeedConfirmHandler)
+    http.HandleFunc(handlers.FinanceFeedEditEndpoint, handlers.FinanceFeedEditHandler)
+    http.HandleFunc(handlers.LogoutEndpoint, handlers.LogoutHandler)
 
     // Default route
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        http.Redirect(w, r, handlers.loginEndpoint, http.StatusSeeOther)
+        http.Redirect(w, r, handlers.LoginEndpoint, http.StatusSeeOther)
     })
 
     fmt.Println("Server listening on port 8080...")

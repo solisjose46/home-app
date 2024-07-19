@@ -1,6 +1,7 @@
 package templates
 
 import (
+    "fmt"
     "bytes"
     "html/template"
     "time"
@@ -10,30 +11,34 @@ import (
 )
 
 const (
-    tmplPath = "web/templates/"
-    tmplLogin = "login"
-    tmplHome = "home"
-    tmplFinance = "finance"
-    tmplFinanceTrack = "finance-track"
-    tmplFinanceTrackConfirm = "finance-track-confirm"
-    tmplFinanceFeed = "finance-feed"
-    tmplFinanceFeedEdit = "finance-feed-edit"
-    tmplFinanceFeedConfirm = "finance-feed-confirm"
-    tmplServerResponse = "server-response"
-    htmlExtension = ".html"
+    TmplPath = "web/templates/"
+    TmplLogin = "login"
+    TmplHome = "home"
+    TmplFinance = "finance"
+    TmplFinanceTrack = "finance-track"
+    TmplFinanceTrackConfirm = "finance-track-confirm"
+    TmplFinanceFeed = "finance-feed"
+    TmplFinanceFeedEdit = "finance-feed-edit"
+    TmplFinanceFeedConfirm = "finance-feed-confirm"
+    TmplServerResponse = "server-response"
+    HtmlExtension = ".html"
 )
 
 func GetLogin() (string, error) {
-    htmlLogin := GetFilePath(tmplPath, tmplLogin, htmlExtension)
-
+    htmlLogin := util.GetFilePath(TmplPath, TmplLogin, HtmlExtension)
+    fmt.Println(htmlLogin)
     tmpl, err := template.ParseFiles(htmlLogin)
     if err != nil {
+        fmt.Println("error parsing template", htmlLogin)
         return "", err
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, tmplLogin, nil)
+    err = tmpl.ExecuteTemplate(&buf, TmplLogin, models.Login{
+        ServerResponse: models.ServerResponse{},
+    })
     if err != nil {
+        fmt.Println("template parse error")
         return "", err
     }
 
@@ -41,8 +46,8 @@ func GetLogin() (string, error) {
 }
 
 func GetLoginServerResponse(serverResponse models.ServerResponse) (string, error) {
-    htmlLogin := GetFilePath(tmplPath, tmplLogin, htmlExtension)
-    htmlServerResponse := GetFilePath(tmplPath, tmplServerResponse, htmlExtension)
+    htmlLogin := util.GetFilePath(TmplPath, TmplLogin, HtmlExtension)
+    htmlServerResponse := util.GetFilePath(TmplPath, TmplServerResponse, HtmlExtension)
     
     tmpl, err := template.ParseFiles(htmlLogin, htmlServerResponse)
     if err != nil {
@@ -54,7 +59,7 @@ func GetLoginServerResponse(serverResponse models.ServerResponse) (string, error
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, tmplLogin, loginData)
+    err = tmpl.ExecuteTemplate(&buf, TmplLogin, loginData)
     if err != nil {
         return "", err
     }
@@ -68,17 +73,17 @@ func GetFinanceTrack(userId string) (string, error) {
         return "", err
     }
 
-    month := now.Format("January 2006")
+    month := time.Now().Month().String()
 
     finance := models.Finance{
         FinanceTrack: models.FinanceTrack{
-            Month: time.Now(),
+            Month: month,
             Categories: categories,
         },
     }
 
-    htmlFinance := GetFilePath(tmplPath, tmplFinance, htmlExtension)
-    htmlFinanceTrack := GetFilePath(tmplPath, tmplFinanceTrack, htmlExtension)
+    htmlFinance := util.GetFilePath(TmplPath, TmplFinance, HtmlExtension)
+    htmlFinanceTrack := util.GetFilePath(TmplPath, TmplFinanceTrack, HtmlExtension)
 
     tmpl, err := template.ParseFiles(htmlFinance, htmlFinanceTrack)
     if err != nil {
@@ -86,7 +91,7 @@ func GetFinanceTrack(userId string) (string, error) {
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, tmplFinance, finance)
+    err = tmpl.ExecuteTemplate(&buf, TmplFinance, finance)
     if err != nil {
         return "", err
     }
@@ -100,8 +105,8 @@ func GetFinanceTrackConfirm(expense models.Expense) (string, error) {
         return "", err
     }
 
-    htmlFinanceTrack := GetFilePath(tmplPath, tmplFinanceTrack, htmlExtension)
-    htmlFinanceTrackConfirm := GetFilePath(tmplPath, tmplFinanceTrackConfirm, htmlExtension)
+    htmlFinanceTrack := util.GetFilePath(TmplPath, TmplFinanceTrack, HtmlExtension)
+    htmlFinanceTrackConfirm := util.GetFilePath(TmplPath, TmplFinanceTrackConfirm, HtmlExtension)
 
     tmpl, err := template.ParseFiles(htmlFinanceTrack, htmlFinanceTrackConfirm)
     if err != nil {
@@ -116,7 +121,7 @@ func GetFinanceTrackConfirm(expense models.Expense) (string, error) {
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, tmplFinanceTrack, financeTrack)
+    err = tmpl.ExecuteTemplate(&buf, TmplFinanceTrack, financeTrack)
     if err != nil {
         return "", err
     }
@@ -130,8 +135,8 @@ func GetFinanceTrackServerResponse(serverResponse models.ServerResponse) (string
         return "", err
     }
 
-    htmlFinanceTrack := GetFilePath(tmplPath, tmplFinanceTrack, htmlExtension)
-    htmlServerResponse := GetFilePath(tmplPath, tmplServerResponse, htmlExtension)
+    htmlFinanceTrack := util.GetFilePath(TmplPath, TmplFinanceTrack, HtmlExtension)
+    htmlServerResponse := util.GetFilePath(TmplPath, TmplServerResponse, HtmlExtension)
 
     tmpl, err := template.ParseFiles(htmlServerResponse, htmlFinanceTrack)
     if err != nil {
@@ -144,7 +149,7 @@ func GetFinanceTrackServerResponse(serverResponse models.ServerResponse) (string
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, tmplFinanceTrack, financeTrack)
+    err = tmpl.ExecuteTemplate(&buf, TmplFinanceTrack, financeTrack)
     if err != nil {
         return "", err
     }
@@ -153,14 +158,14 @@ func GetFinanceTrackServerResponse(serverResponse models.ServerResponse) (string
 }
 
 func GetFinanceFeed(userId string) (string, error) {
-    expenses := dao.GetExpensesForCurrentMonth(userId)
+    expenses, err := dao.GetExpensesForCurrentMonth(userId)
 
     if err != nil {
         return "", err
     }
 
-    htmlFinance := GetFilePath(tmplPath, tmplFinance, htmlExtension)
-    htmlFinanceFeed := GetFilePath(tmplPath, tmplFinanceFeed, htmlExtension)
+    htmlFinance := util.GetFilePath(TmplPath, TmplFinance, HtmlExtension)
+    htmlFinanceFeed := util.GetFilePath(TmplPath, TmplFinanceFeed, HtmlExtension)
 
     tmpl, err := template.ParseFiles(htmlFinance, htmlFinanceFeed)
     if err != nil {
@@ -174,7 +179,7 @@ func GetFinanceFeed(userId string) (string, error) {
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, tmplFinance, finance)
+    err = tmpl.ExecuteTemplate(&buf, TmplFinance, finance)
     if err != nil {
         return "", err
     }
@@ -183,14 +188,14 @@ func GetFinanceFeed(userId string) (string, error) {
 }
 
 func GetFinanceFeedEdit(expense models.Expense) (string, error) {
-    expenses := dao.GetExpensesForCurrentMonth(userId)
+    expenses, err := dao.GetExpensesForCurrentMonth(expense.UserId)
 
     if err != nil {
         return "", err
     }
 
-    htmlFinanceFeed := GetFilePath(tmplPath, tmplFinanceFeed, htmlExtension)
-    htmlFinanceEdit := GetFilePath(tmplPath, tmplFinanceFeedEdit, htmlExtension)
+    htmlFinanceFeed := util.GetFilePath(TmplPath, TmplFinanceFeed, HtmlExtension)
+    htmlFinanceEdit := util.GetFilePath(TmplPath, TmplFinanceFeedEdit, HtmlExtension)
 
     tmpl, err := template.ParseFiles(htmlFinanceFeed, htmlFinanceEdit)
     if err != nil {
@@ -205,7 +210,7 @@ func GetFinanceFeedEdit(expense models.Expense) (string, error) {
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, tmplFinanceFeed, financeFeed)
+    err = tmpl.ExecuteTemplate(&buf, TmplFinanceFeed, financeFeed)
     if err != nil {
         return "", err
     }
@@ -214,21 +219,24 @@ func GetFinanceFeedEdit(expense models.Expense) (string, error) {
 }
 
 func GetFinanceFeedConfirm(newExpense models.Expense) (string, error) {
-    expenses := dao.GetExpensesForCurrentMonth(newExpense.UserId)
+    expenses, err := dao.GetExpensesForCurrentMonth(newExpense.UserId)
 
     if err != nil {
         return "", err
     }
 
-    htmlFinanceFeed := GetFilePath(tmplPath, tmplFinanceFeed, htmlExtension)
-    htmlFinanceFeedConfirm := GetFilePath(tmplPath, tmplFinanceFeedConfirm, htmlExtension)
+    htmlFinanceFeed := util.GetFilePath(TmplPath, TmplFinanceFeed, HtmlExtension)
+    htmlFinanceFeedConfirm := util.GetFilePath(TmplPath, TmplFinanceFeedConfirm, HtmlExtension)
 
     tmpl, err := template.ParseFiles(htmlFinanceFeed, htmlFinanceFeedConfirm)
     if err != nil {
         return "", err
     }
 
-    oldExpense := dao.GetExpense(newExpense.UserId)
+    oldExpense, err := dao.GetExpense(newExpense.UserId)
+    if err != nil {
+        return "", err
+    }
 
     financeFeed := models.FinanceFeed{
         Expenses: expenses,
@@ -239,7 +247,7 @@ func GetFinanceFeedConfirm(newExpense models.Expense) (string, error) {
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, tmplFinanceFeed, financeFeed)
+    err = tmpl.ExecuteTemplate(&buf, TmplFinanceFeed, financeFeed)
     if err != nil {
         return "", err
     }
@@ -247,15 +255,20 @@ func GetFinanceFeedConfirm(newExpense models.Expense) (string, error) {
     return buf.String(), nil
 }
 
-func GetFinanceFeedServerResponse(serverResponse models.ServerResponse) (string, error) {
-    expenses := dao.GetExpensesForCurrentMonth(newExpense.UserId)
+func GetFinanceFeedServerResponse(userId string, serverResponse models.ServerResponse) (string, error) {
+    expenses, err := dao.GetExpensesForCurrentMonth(userId)
 
     if err != nil {
         return "", err
     }
 
-    htmlFinanceFeed := GetFilePath(tmplPath, tmplFinanceFeed, htmlExtension)
-    htmlServerResponse := GetFilePath(tmplPath, tmplServerResponse, htmlExtension)
+    htmlFinanceFeed := util.GetFilePath(TmplPath, TmplFinanceFeed, HtmlExtension)
+    htmlServerResponse := util.GetFilePath(TmplPath, TmplServerResponse, HtmlExtension)
+
+    tmpl, err := template.ParseFiles(htmlFinanceFeed, htmlServerResponse)
+    if err != nil {
+        return "", err
+    }
 
     financeFeed := models.FinanceFeed{
         Expenses: expenses,
@@ -263,7 +276,7 @@ func GetFinanceFeedServerResponse(serverResponse models.ServerResponse) (string,
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, tmplFinanceFeed, financeFeed)
+    err = tmpl.ExecuteTemplate(&buf, TmplFinanceFeed, financeFeed)
     if err != nil {
         return "", err
     }
