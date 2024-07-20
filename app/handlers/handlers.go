@@ -2,15 +2,16 @@ package handlers
 
 import (
 	"fmt"
-	"net/http"
+	"github.com/gorilla/sessions"
 	"home-app/app/dao"
 	"home-app/app/models"
 	"home-app/app/templates"
 	"home-app/app/util"
+	"net/http"
 	"strconv"
-	"github.com/gorilla/sessions"
 )
 
+// TODO: import from ignored file
 var store = sessions.NewCookieStore([]byte("something-very-secret"))
 
 const (
@@ -23,88 +24,131 @@ const (
 	FinanceFeedEndpoint				= "/finance/feed"
 	FinanceFeedConfirmPoint			= "/finance/feed/confirm"
 	FinanceFeedEditEndpoint			= "/finance/feed/edit"
+	SessionName						= "session-name"
+	Username 						= "useranme"
+	Password 						= "password"
+	UserId 							= "user-id"
+	Amount 							= "amount"
+	Name 							= "name"
+	Category 						= "category"
+	InternalServerError 			= "Internal Server Error"
+	Redirect 						= "Redirect 303"
+	MethodNotAllowed 				= "Method Not Allowed"
+    GET 							= "GET "
+    POST 							= "POST "
+	InvalidInput 					= "Bad Username and/or Passoword"
+	InvalidExpenseInput 			= "Name, Amount and Category cannot be empty!"
+	FailedToAddExpense 				= "Sorry! Failed to add expense"
+	SuccAddExpense 					= "Expense successfully added!"
+	Expire	 						= -1
 )
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet && r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
-	session, _ := store.Get(r, "session-name")
-	if session.Values["username"] != nil {
+	session, err := store.Get(r, SessionName)
+
+	if err != nil {
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	if session.Values[Username] != nil {
 		http.Redirect(w, r, HomeEndpoint, http.StatusSeeOther)
 		return
 	}
 
     if r.Method == http.MethodGet {
+		util.PrintMessage(GET, LoginEndpoint)
+
         response, err := templates.GetLogin()
         if err != nil {
-			fmt.Println(err)
-            http.Error(w, "Internal server error", http.StatusInternalServerError)
+			util.PrintError(err)
+            http.Error(w, InternalServerError, http.StatusInternalServerError)
             return
         }
         w.Write([]byte(response))
+		util.PrintSuccess(GET, LoginEndpoint)
         return
     }
 
-	username := r.FormValue("username")
-	password := r.FormValue("password")
+	util.PrintMessage(POST, LoginEndpoint)
 
-	if username == "" || password == "" {
-		loginServerResponse, _ := templates.GetLoginServerResponse(models.ServerResponse{
-			Message: "Invalid input",
-			ReturnEndpoint: LoginEndpoint,
-		})
-		w.Write([]byte(loginServerResponse))
+	username := r.FormValue(Username)
+	password := r.FormValue(Password)
+
+	loginAtttempt, err := templates.GetLoginAttempt(username, password)
+
+	if err != nil {
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
-	valid, err := dao.ValidateUser(username, password)
-	if err != nil || !valid {
-		response, _ := templates.GetLoginServerResponse(
-			models.ServerResponse{
-				Message: "Bad login",
-				ReturnEndpoint: LoginEndpoint,
-		})
+	if loginAtttempt != "" {
 		w.Write([]byte(response))
 		return
 	}
 
 	userId, err := dao.GetUserId(username)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
-	session.Values["username"] = username
-	session.Values["userId"] = userId
+	session.Values[Username] = username
+	session.Values[UserId] = userId
 	session.Save(r, w)
 
 	http.Redirect(w, r, HomeEndpoint, http.StatusSeeOther)
+	util.PrintSuccess(POST, LoginEndpoint)
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
-	session, _ := store.Get(r, "session-name")
-	session.Options.MaxAge = -1
+	util.PrintMessage(POST, LogoutEndpoint)
+
+	session, err := store.Get(r, SessionName)
+
+	if err != nil {
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	session.Options.MaxAge = Expire
 	session.Save(r, w)
 
 	http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
+	util.PrintSuccess(POST, LogoutEndpoint)
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
-	session, _ := store.Get(r, "session-name")
-	if session.Values["username"] == nil {
+	util.PrintMessage(GET, HomeEndpoint)
+
+	session, err := store.Get(r, SessionName)
+
+	if err != nil {
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	if session.Values[Username] == nil {
 		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
 		return
 	}
@@ -112,111 +156,170 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	htmlHome := util.GetFilePath(templates.TmplPath, templates.TmplHome, templates.HtmlExtension)
 
 	http.ServeFile(w, r, htmlHome)
+	util.PrintSuccess(GET, HomeEndpoint)
 }
 
 func FinanceHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
-	session, _ := store.Get(r, "session-name")
-	if session.Values["username"] == nil {
+	util.PrintMessage(GET, FinanceEndpoint)
+
+	session, err := store.Get(r, SessionName)
+
+	if err != nil {
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	if session.Values[Username] == nil {
 		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
 	http.Redirect(w, r, FinanceTrackEndpoint, http.StatusSeeOther)
+	util.PrintMessage(Redirect, FinanceTrackEndpoint)
 }
 
 func FinanceTrackHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet && r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
-	session, _ := store.Get(r, "session-name")
-	if session.Values["username"] == nil {
+	session, err := store.Get(r, SessionName)
+
+	if err != nil {
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	if session.Values[Username] == nil {
 		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
-	userId := session.Values["userId"].(string)
+	userId := session.Values[UserId].(string)
 
 	if r.Method == http.MethodGet {
+		util.PrintMessage(GET, FinanceTrackEndpoint)
+
 		response, err := templates.GetFinanceTrack(userId)
 		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			util.PrintError(err)
+			http.Error(w, InternalServerError, http.StatusInternalServerError)
 			return
 		}
 		w.Write([]byte(response))
+		util.PrintSuccess(GET, FinanceTrackEndpoint)
 		return
 	}
 
-	// Handle POST method: gather expense data from form and return confirmation page
+	util.PrintMessage(POST, FinanceTrackEndpoint)
 
-	amount, err := strconv.ParseFloat(r.FormValue("amount"), 64)
+	amount, err := strconv.ParseFloat(r.FormValue(Amount), 64)
+
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
 	expense := models.Expense{
 		UserId:   userId,
-		Name:     r.FormValue("name"),
+		Name:     r.FormValue(Name),
 		Amount:   amount,
-		Category: r.FormValue("category"),
+		Category: r.FormValue(Category),
 	}
 
-	response, err := templates.GetFinanceTrackConfirm(expense)
+	response, err := templates.GetFinanceTrackValidateExpense(expense)
+
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-	w.Write([]byte(response))
-}
-
-func FinanceTrackConfirmHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
-	session, _ := store.Get(r, "session-name")
-	if session.Values["username"] == nil {
-		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
-		return
-	}
-
-	amount, err := strconv.ParseFloat(r.FormValue("amount"), 64)
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	expense := models.Expense{
-		UserId:   session.Values["userId"].(string),
-		Name:     r.FormValue("name"),
-		Amount:   amount,
-		Category: r.FormValue("category"),
-	}
-
-	// Validate input
-	if expense.Name == "" || expense.Amount == 0 || expense.Category == "" {
-		response, _ := templates.GetFinanceTrackServerResponse(models.ServerResponse{
-			Message: "Invalid input",
-			ReturnEndpoint: FinanceTrackEndpoint,
-		})
+	if response != "" {
 		w.Write([]byte(response))
 		return
 	}
 
+	response, err := templates.GetFinanceTrackConfirm(expense)
+	
+	if err != nil {
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+	
+	w.Write([]byte(response))
+	util.PrintSuccess(POST, FinanceTrackEndpoint)
+}
+
+func FinanceTrackConfirmHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
+		return
+	}
+
+	util.PrintMessage(POST, FinanceTrackConfirmEndpoint)
+
+	session, err := store.Get(r, SessionName)
+
+	if err != nil {
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	if session.Values[Username] == nil {
+		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
+		return
+	}
+
+	amount, err := strconv.ParseFloat(r.FormValue(Amount), 64)
+	
+	if err != nil {
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	expense := models.Expense{
+		UserId:   session.Values[UserId].(string),
+		Name:     r.FormValue(Name),
+		Amount:   amount,
+		Category: r.FormValue(Category),
+	}
+
+	if expense.Name == "" || expense.Amount == 0 || expense.Category == "" {
+		response, err := templates.GetFinanceTrackServerResponse(
+			models.ServerResponse{
+				Message: InvalidExpenseInput,
+				ReturnEndpoint: FinanceTrack,
+			}
+		)
+
+		if err != nil {
+			util.PrintError(err)
+			http.Error(w, InternalServerError, http.StatusInternalServerError)
+			return
+		}
+
+		w.Write([]byte(response))
+		return
+	}
+
+	// revisit this part
+	// I dont dao ops here
 	success, err := dao.AddExpense(expense)
 	if err != nil || !success {
-		response, _ := templates.GetFinanceTrackServerResponse(models.ServerResponse{
-			Message: "Failed to add expense",
-			ReturnEndpoint: FinanceTrackEndpoint,
-		})
+		response, _ := templates.GetFinanceTrackServerResponse()
 		w.Write([]byte(response))
 		return
 	}

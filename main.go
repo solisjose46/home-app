@@ -27,7 +27,6 @@ func main() {
     http.HandleFunc(handlers.FinanceFeedEditEndpoint, handlers.FinanceFeedEditHandler)
     http.HandleFunc(handlers.LogoutEndpoint, handlers.LogoutHandler)
 
-    // Default route
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
         http.Redirect(w, r, handlers.LoginEndpoint, http.StatusSeeOther)
     })

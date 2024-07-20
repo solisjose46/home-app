@@ -1,8 +1,30 @@
 package util
 
 import (
+    "fmt"
 	"strings"
 )
+
+const (
+    Reset  = "\033[0m"
+    Red    = "\033[31m"
+    Green  = "\033[32m"
+    Yellow = "\033[33m"
+)
+
+func PrintError(err error) {
+    fmt.Println(fmt.Sprintf("%s%s%s", Red, err.Error(), Reset))
+}
+
+func PrintMessage(messages ...string) {
+    appended := GetFilePath(messages...)
+    fmt.Println(fmt.Sprintf("%s%s%s", Yellow, appended, Reset))
+}
+
+func PrintSuccess(messages ...string) {
+    appended := GetFilePath(messages...)
+    fmt.Println(fmt.Sprintf("%s%s%s", Green, appended, Reset))
+}
 
 func GetFilePath(paths ...string) string {
     var builder strings.Builder

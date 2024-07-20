@@ -12,7 +12,7 @@ type Expense struct {
 	Name      string
 	Amount    float64
 	Category  string
-	User      string
+	Username      string
 	UserId    string
 	Datetime  time.Time
 	IsOwner   bool

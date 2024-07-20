@@ -24,6 +24,12 @@ const (
     HtmlExtension = ".html"
 )
 
+// handler.go should have little activity with dao
+
+func GetLogin(response *models.ServerResponse) (string, error) {
+
+}
+
 func GetLogin() (string, error) {
     htmlLogin := util.GetFilePath(TmplPath, TmplLogin, HtmlExtension)
     htmlServerResponse := util.GetFilePath(TmplPath, TmplServerResponse, HtmlExtension)
@@ -42,6 +48,94 @@ func GetLogin() (string, error) {
 
     return buf.String(), nil
 }
+
+func PostLogin(username, password string) (string, error) {
+    util.PrintMessage("validate input")
+
+	if username == "" || password == "" {
+		return templates.GetLoginServerResponse(
+            models.ServerResponse{
+                Message: handlers.InvalidInput,
+                ReturnEndpoint: handlers.LoginEndpoint
+            }
+        )
+	}
+
+    util.PrintMessage("auth attempt")
+
+    valid, err := dao.ValidateUser(username, password)
+
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    if !valid {
+        return GetLoginServerResponse(
+            models.ServerResponse{
+                Message: handlers.InvalidInput,
+                ReturnEndpoint: handlers.LoginEndpoint,
+            }
+        )
+    }
+
+    return "", nil
+}
+
+func PostFinanceTrack(expense models.Expense) (string, error) {
+    response, err := GetFinanceTrackValidateExpense(expense)
+
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    if response != nil {
+        return response, nil
+    }
+
+    util.PrintMessage("Attempting to add expense")
+
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    if !success {
+        return GetFinanceFeedServerResponse(
+            models.ServerResponse{
+                Message: handlers.InvalidExpenseInput,
+                ReturnEndpoint: handlers.FinanceTrackEndpoint,
+            }
+        )
+    }
+
+    return GetFinanceTrackConfirm(expense)
+}
+
+func GetFinanceTrackValidateExpense(expense models.Expense) (string, error) {
+    util.PrintMessage("validate expense input")
+
+    if expense.Name != "" && expense.Amount > 0 && expense.Category != "" {
+        return "", nil
+    }
+
+    reponse, err := templates.GetFinanceTrackServerResponse(
+        models.ServerResponse{
+            Message: InvalidExpenseInput,
+            ReturnEndpoint: FinanceTrackEndpoint
+        }
+    )
+
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    return response, nil
+}
+
+
 
 
 func GetLoginServerResponse(serverResponse models.ServerResponse) (string, error) {
