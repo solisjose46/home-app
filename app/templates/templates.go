@@ -26,24 +26,23 @@ const (
 
 func GetLogin() (string, error) {
     htmlLogin := util.GetFilePath(TmplPath, TmplLogin, HtmlExtension)
-    fmt.Println(htmlLogin)
-    tmpl, err := template.ParseFiles(htmlLogin)
+    htmlServerResponse := util.GetFilePath(TmplPath, TmplServerResponse, HtmlExtension)
+    
+    tmpl, err := template.ParseFiles(htmlLogin, htmlServerResponse)
     if err != nil {
-        fmt.Println("error parsing template", htmlLogin)
+        fmt.Println("error parsing templates", htmlLogin, htmlServerResponse)
         return "", err
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, TmplLogin, models.Login{
-        ServerResponse: models.ServerResponse{},
-    })
+    err = tmpl.ExecuteTemplate(&buf, TmplLogin, nil)
     if err != nil {
-        fmt.Println("template parse error")
         return "", err
     }
 
     return buf.String(), nil
 }
+
 
 func GetLoginServerResponse(serverResponse models.ServerResponse) (string, error) {
     htmlLogin := util.GetFilePath(TmplPath, TmplLogin, HtmlExtension)

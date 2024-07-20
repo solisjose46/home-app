@@ -8,8 +8,8 @@
 </head>
 <body>
     <div>
-        {{ if . }}
-        {{ template "server-response" .ServerResponse }}
+        {{ with . }}
+            {{ template "server-response" .ServerResponse }}
         {{ end }}
         <div>
             <h2>Login</h2>

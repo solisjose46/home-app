@@ -39,8 +39,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
     if r.Method == http.MethodGet {
         response, err := templates.GetLogin()
-		fmt.Println("ERROR here")
         if err != nil {
+			fmt.Println(err)
             http.Error(w, "Internal server error", http.StatusInternalServerError)
             return
         }
