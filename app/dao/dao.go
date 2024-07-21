@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	dbPath                  = "internal/db/sqlite/home.db"
+	dbPath                  = "db/home.db"
     authUserQuery           = "SELECT password FROM users WHERE username = ?"
     userIdQuery             = "SELECT userId FROM users WHERE username = ?"
     getExpenseQuery         = "SELECT e.expenseId AS ExpenseId, e.name AS Name, e.amount AS Amount, c.categoryName AS Category, u.username AS Username, e.userId AS UserId, e.createdAt AS Datetime FROM expenses e JOIN users u ON e.userId = u.userId JOIN categories c ON e.categoryId = c.categoryId WHERE e.expenseId = ?"
@@ -45,8 +45,8 @@ func CloseDB() {
 
 func ValidateUser(username, password string) (bool, error) {
     util.PrintMessage("Attempting to auth user ", username)
-    
-    var hashedPassword string
+
+    var hashedPassword []byte
     err := dao.QueryRow(authUserQuery, username).Scan(&hashedPassword)
 
     if err != nil {
@@ -54,10 +54,16 @@ func ValidateUser(username, password string) (bool, error) {
         return false, err
     }
 
-    err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+    err = bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
+    
+    if err == bcrypt.ErrMismatchedHashAndPassword {
+        util.PrintError(err)
+        return false, nil
+    }
+    
     if err != nil {
         util.PrintError(err)
-        return false, errors.New("password does not match")
+        return false, err
     }
 
     util.PrintSuccess("Succ Auth ", username)

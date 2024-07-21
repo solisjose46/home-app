@@ -15,7 +15,7 @@ var store = sessions.NewCookieStore([]byte("something-very-secret"))
 
 const (
 	SessionName						= "session-name"
-	Username 						= "useranme"
+	Username 						= "username"
 	Password 						= "password"
 	UserId 							= "user-id"
 	Amount 							= "amount"
@@ -67,6 +67,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	username := r.FormValue(Username)
 	password := r.FormValue(Password)
+
+	util.PrintMessage("username\n", username)
+	util.PrintMessage("password\n", password)
+
 
 	response, err := templates.PostLogin(username, password)
 
