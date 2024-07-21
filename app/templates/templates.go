@@ -11,49 +11,69 @@ import (
 )
 
 const (
-    TmplPath = "web/templates/"
-    TmplLogin = "login"
-    TmplHome = "home"
-    TmplFinance = "finance"
-    TmplFinanceTrack = "finance-track"
+    TmplLogin               = "login"
+    TmplHome                = "home"
+    TmplFinance             = "finance"
+    TmplFinanceTrack        = "finance-track"
     TmplFinanceTrackConfirm = "finance-track-confirm"
-    TmplFinanceFeed = "finance-feed"
-    TmplFinanceFeedEdit = "finance-feed-edit"
-    TmplFinanceFeedConfirm = "finance-feed-confirm"
-    TmplServerResponse = "server-response"
-    HtmlExtension = ".html"
+    TmplFinanceFeed         = "finance-feed"
+    TmplFinanceFeedEdit     = "finance-feed-edit"
+    TmplFinanceFeedConfirm  = "finance-feed-confirm"
+    TmplServerResponse      = "server-response"
+
 )
 
-// handler.go should have little activity with dao
-
-func GetLogin(response *models.ServerResponse) (string, error) {
-
-}
-
 func GetLogin() (string, error) {
-    htmlLogin := util.GetFilePath(TmplPath, TmplLogin, HtmlExtension)
-    htmlServerResponse := util.GetFilePath(TmplPath, TmplServerResponse, HtmlExtension)
+    util.PrintMessage("Getting login template")
+
+    htmlLogin := util.GetTmplPath(TmplLogin)
+    htmlServerResponse := util.GetTmplPath(TmplServerResponse)
     
     tmpl, err := template.ParseFiles(htmlLogin, htmlServerResponse)
     if err != nil {
-        fmt.Println("error parsing templates", htmlLogin, htmlServerResponse)
+        util.PrintError(err)
         return "", err
     }
 
     var buf bytes.Buffer
     err = tmpl.ExecuteTemplate(&buf, TmplLogin, nil)
     if err != nil {
+        util.PrintError(err)
         return "", err
     }
 
+    util.PrintSuccess("returning home login template")
+    return buf.String(), nil
+}
+
+func getLoginServerResponse(sr models.ServerResponse) (string, error) {
+    util.PrintMessage("Getting login template")
+
+    htmlLogin := util.GetTmplPath(TmplLogin)
+    htmlServerResponse := util.GetTmplPath(TmplServerResponse)
+    
+    tmpl, err := template.ParseFiles(htmlLogin, htmlServerResponse)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    var buf bytes.Buffer
+    err = tmpl.ExecuteTemplate(&buf, TmplLogin, sr)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    util.PrintSuccess("returning home login template")
     return buf.String(), nil
 }
 
 func PostLogin(username, password string) (string, error) {
-    util.PrintMessage("validate input")
+    util.PrintMessage("Getting post login\n", "validate input")
 
 	if username == "" || password == "" {
-		return templates.GetLoginServerResponse(
+		return getLoginServerResponse(
             models.ServerResponse{
                 Message: handlers.InvalidInput,
                 ReturnEndpoint: handlers.LoginEndpoint
@@ -71,7 +91,7 @@ func PostLogin(username, password string) (string, error) {
     }
 
     if !valid {
-        return GetLoginServerResponse(
+        return getLoginServerResponse(
             models.ServerResponse{
                 Message: handlers.InvalidInput,
                 ReturnEndpoint: handlers.LoginEndpoint,
@@ -79,227 +99,307 @@ func PostLogin(username, password string) (string, error) {
         )
     }
 
-    return "", nil
+    util.PrintSuccess("authenticated!")
+    return GetHome()
+}
+
+func GetHome() (string, error) {
+    util.PrintMessage("Getting home template")
+
+    htmlHome := util.GetTmplPath(TmplHome)
+    
+    tmpl, err := template.ParseFiles(htmlHome)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    var buf bytes.Buffer
+    err = tmpl.ExecuteTemplate(&buf, TmplHome, nil)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    util.PrintSuccess("returning home template")
+    return buf.String(), nil
+}
+
+
+func GetFinance(financeTrack models.FinanceTrack) (string, error) {
+    util.PrintMessage("Getting finance template")
+
+    htmlFinance := util.GetTmplPath(TmplFinance)
+    htmlFinanceTrack := util.GetTmplPath(TmplFinanceTrack)
+    
+    tmpl, err := template.ParseFiles(htmlFinance, htmlFinanceTrack)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    if err != nil {
+        fmt.PrintError(err)
+        return "", err
+    }
+
+    var buf bytes.Buffer
+    err = tmpl.ExecuteTemplate(&buf, TmplFinance, 
+        models.Finance{
+            FinanceTrack: financeTrack,
+        }
+    )
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    util.PrintSuccess("returning finance template")
+    return buf.String(), nil
+}
+
+func GetFinanceTrack() (string, error) {
+    util.PrintMessage("Getting finance track server response template")
+
+    htmlFinanceTrack := util.GetTmplPath(TmplFinanceTrack)
+    
+    tmpl, err := template.ParseFiles(htmlFinanceTrack)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    financeTrack, err := BuildFinanceTrack()
+
+    if err != nil {
+        fmt.PrintError(err)
+        return "", err
+    }
+
+    var buf bytes.Buffer
+    err = tmpl.ExecuteTemplate(&buf, TmplFinanceTrack, financeTrack)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    util.PrintSuccess("returning finance track server response template")
+    return buf.String(), nil
+}
+
+func getFinanceTrackServerResponse(sr models.ServerResponse) (string, error) {
+    util.PrintMessage("Getting finance track server response template")
+
+    htmlFinanceTrack := util.GetTmplPath(TmplFinanceTrack)
+    htmlServerResponse := util.GetTmplPath(TmplServerResponse)
+    
+    tmpl, err := template.ParseFiles(htmlFinanceTrack, htmlServerResponse)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    financeTrack, err := BuildFinanceTrack()
+
+    if err != nil {
+        fmt.PrintError(err)
+        return "", err
+    }
+
+    financeTrack.ServerResponse = sr
+
+    var buf bytes.Buffer
+    err = tmpl.ExecuteTemplate(&buf, TmplFinanceTrack, financeTrack)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    util.PrintSuccess("returning finance track server response template")
+    return buf.String(), nil
+}
+
+func getFinanceTrackConfirm(ftc models.FinanceTrackConfirm) (string, error) {
+    util.PrintMessage("Getting finance track confirm template")
+
+    htmlFinanceTrack := util.GetTmplPath(TmplFinanceTrack)
+    htmlFinanceTrackConfirm := util.GetTmplPath(TmplFinanceTrackConfirm)
+    
+    tmpl, err := template.ParseFiles(htmlFinanceTrack, htmlFinanceTrackConfirm)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    financeTrack, err := BuildFinanceTrack()
+
+    if err != nil {
+        fmt.PrintError(err)
+        return "", err
+    }
+
+    financeTrack.FinanceTrackConfirm = ftc
+
+    var buf bytes.Buffer
+    err = tmpl.ExecuteTemplate(&buf, TmplFinanceTrack, financeTrack)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    util.PrintSuccess("returning finance track confirm template")
+    return buf.String(), nil
 }
 
 func PostFinanceTrack(expense models.Expense) (string, error) {
-    response, err := GetFinanceTrackValidateExpense(expense)
+    util.PrintMessage("Posting expense")
 
-    if err != nil {
-        util.PrintError(err)
-        return "", err
-    }
-
-    if response != nil {
-        return response, nil
-    }
-
-    util.PrintMessage("Attempting to add expense")
-
-    if err != nil {
-        util.PrintError(err)
-        return "", err
-    }
-
-    if !success {
-        return GetFinanceFeedServerResponse(
+    if expense.Name == "" || expense.Amount == 0 || expense.Category == "" {
+        return getFinanceTrackServerResponse(
             models.ServerResponse{
-                Message: handlers.InvalidExpenseInput,
+                Message: handler.InvalidExpenseInput,
                 ReturnEndpoint: handlers.FinanceTrackEndpoint,
             }
         )
     }
 
-    return GetFinanceTrackConfirm(expense)
+    util.PrintMessage("returning finance track confirm")
+
+    return getFinanceTrackConfirm(
+        models.FinanceTrackConfirm{
+            Expense: expense,
+        }
+    )
 }
 
-func GetFinanceTrackValidateExpense(expense models.Expense) (string, error) {
-    util.PrintMessage("validate expense input")
+func PostFinanceTrackConfirm(expense models.Expense) (string, error) {
+    util.PrintMessage("Posting expense")
 
-    if expense.Name != "" && expense.Amount > 0 && expense.Category != "" {
+    if expense.Name == "" || expense.Amount == 0 || expense.Category == "" {
+        return getFinanceTrackServerResponse(
+            models.ServerResponse{
+                Message: handler.InvalidExpenseInput,
+                ReturnEndpoint: handlers.FinanceTrackEndpoint,
+            }
+        )
+    }
+
+    succ, err := dao.AddExpense(expense)
+    if err != nil {
+        util.PrintError(err)
         return "", nil
     }
 
-    reponse, err := templates.GetFinanceTrackServerResponse(
-        models.ServerResponse{
-            Message: InvalidExpenseInput,
-            ReturnEndpoint: FinanceTrackEndpoint
-        }
+    sr := models.ServerResponse{
+        ReturnEndpoint: handlers.FinanceTrackEndpoint
+    }
+
+    if !succ {
+        util.PrintMessage("fail to add expense")
+        sr.Message = handlers.FailedToAddExpense
+    }
+    else {
+        util.PrintSuccess("expense added!")
+        sr.Message = handlers.SuccAddExpense
+    }
+
+    return getFinanceTrackServerResponse(sr)
+}
+
+func GetFinanceFeed(userId string) (stirng, error) {
+    util.PrintMessage("getting finance feed template")
+
+    htmlFinance := util.GetTmplPath(TmplFinance)
+    htmlFInanceFeed := util.GetTmplPath(TmplFinanceFeed)
+    
+    tmpl, err := template.ParseFiles(htmlFinance, htmlFInanceFeed)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    financeFeed, err := BuildFinanceFeed(userId)
+
+    if err != nil {
+        fmt.PrintError(err)
+        return "", err
+    }
+
+    var buf bytes.Buffer
+    err = tmpl.ExecuteTemplate(&buf, TmplFinance, 
+        models.Finance{
+            FinanceFeed: financeFeed,
+        )
     )
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    util.PrintMessage("returning finance feed template")
+    return buf.String(), nil
+}
+
+func getFinanceFeedServerResponse(userId string, serverResponse models.ServerResponse) (string, error) {
+    util.PrintMessage("getting finance feed server response")
+
+    htmlFinanceFeed := util.GetFilePath(TmplPath, TmplFinanceFeed, HtmlExtension)
+    htmlServerResponse := util.GetFilePath(TmplPath, TmplServerResponse, HtmlExtension)
 
     if err != nil {
         util.PrintError(err)
         return "", err
     }
 
-    return response, nil
-}
-
-
-
-
-func GetLoginServerResponse(serverResponse models.ServerResponse) (string, error) {
-    htmlLogin := util.GetFilePath(TmplPath, TmplLogin, HtmlExtension)
-    htmlServerResponse := util.GetFilePath(TmplPath, TmplServerResponse, HtmlExtension)
-    
-    tmpl, err := template.ParseFiles(htmlLogin, htmlServerResponse)
+    tmpl, err := template.ParseFiles(htmlFinanceFeed, htmlServerResponse)
     if err != nil {
+        util.PrintError(err)
         return "", err
     }
 
-    loginData := models.Login{
-        ServerResponse: serverResponse,
+    financeFeed, err := BuildFinanceFeed(userId)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
     }
+
+    financeFeed.ServerResponse = serverResponse
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, TmplLogin, loginData)
+    err = tmpl.ExecuteTemplate(&buf, TmplFinanceFeed, financeFeed)
     if err != nil {
         return "", err
     }
 
+    util.PrintSuccess("returning finance feed server response")
     return buf.String(), nil
 }
 
-func GetFinanceTrack(userId string) (string, error) {
-    categories, err := dao.GetCategoriesForCurrentMonth()
-    if err != nil {
-        return "", err
-    }
-
-    month := time.Now().Month().String()
-
-    finance := models.Finance{
-        FinanceTrack: models.FinanceTrack{
-            Month: month,
-            Categories: categories,
-        },
-    }
-
-    htmlFinance := util.GetFilePath(TmplPath, TmplFinance, HtmlExtension)
-    htmlFinanceTrack := util.GetFilePath(TmplPath, TmplFinanceTrack, HtmlExtension)
-
-    tmpl, err := template.ParseFiles(htmlFinance, htmlFinanceTrack)
-    if err != nil {
-        return "", err
-    }
-
-    var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, TmplFinance, finance)
-    if err != nil {
-        return "", err
-    }
-
-    return buf.String(), nil
-}
-
-func GetFinanceTrackConfirm(expense models.Expense) (string, error) {
-    categories, err := dao.GetCategoriesForCurrentMonth()
-    if err != nil {
-        return "", err
-    }
-
-    htmlFinanceTrack := util.GetFilePath(TmplPath, TmplFinanceTrack, HtmlExtension)
-    htmlFinanceTrackConfirm := util.GetFilePath(TmplPath, TmplFinanceTrackConfirm, HtmlExtension)
-
-    tmpl, err := template.ParseFiles(htmlFinanceTrack, htmlFinanceTrackConfirm)
-    if err != nil {
-        return "", err
-    }
-
-    financeTrack := models.FinanceTrack{
-        Categories: categories,
-        FinanceTrackConfirm: models.FinanceTrackConfirm{
-            Expense: expense,
-        },
-    }
-
-    var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, TmplFinanceTrack, financeTrack)
-    if err != nil {
-        return "", err
-    }
-
-    return buf.String(), nil
-}
-
-func GetFinanceTrackServerResponse(serverResponse models.ServerResponse) (string, error) {
-    categories, err := dao.GetCategoriesForCurrentMonth()
-    if err != nil {
-        return "", err
-    }
-
-    htmlFinanceTrack := util.GetFilePath(TmplPath, TmplFinanceTrack, HtmlExtension)
-    htmlServerResponse := util.GetFilePath(TmplPath, TmplServerResponse, HtmlExtension)
-
-    tmpl, err := template.ParseFiles(htmlServerResponse, htmlFinanceTrack)
-    if err != nil {
-        return "", err
-    }
-
-    financeTrack := models.FinanceTrack{
-        Categories: categories,
-        ServerResponse: serverResponse,
-    }
-
-    var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, TmplFinanceTrack, financeTrack)
-    if err != nil {
-        return "", err
-    }
-
-    return buf.String(), nil
-}
-
-func GetFinanceFeed(userId string) (string, error) {
-    expenses, err := dao.GetExpensesForCurrentMonth(userId)
-
-    if err != nil {
-        return "", err
-    }
-
-    htmlFinance := util.GetFilePath(TmplPath, TmplFinance, HtmlExtension)
-    htmlFinanceFeed := util.GetFilePath(TmplPath, TmplFinanceFeed, HtmlExtension)
-
-    tmpl, err := template.ParseFiles(htmlFinance, htmlFinanceFeed)
-    if err != nil {
-        return "", err
-    }
-
-    finance := models.Finance{
-        FinanceFeed: models.FinanceFeed{
-            Expenses: expenses,
-        },
-    }
-
-    var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, TmplFinance, finance)
-    if err != nil {
-        return "", err
-    }
-
-    return buf.String(), nil
-}
-
-func GetFinanceFeedEdit(expense models.Expense) (string, error) {
-    expenses, err := dao.GetExpensesForCurrentMonth(expense.UserId)
-
-    if err != nil {
-        return "", err
-    }
+func getFinanceFeedEdit(expense models.Expense) (string, error) {
+    util.PrintMessage("getting finance feed edit")
 
     htmlFinanceFeed := util.GetFilePath(TmplPath, TmplFinanceFeed, HtmlExtension)
-    htmlFinanceEdit := util.GetFilePath(TmplPath, TmplFinanceFeedEdit, HtmlExtension)
+    htmlFinanceFeedEdit := util.GetFilePath(TmplPath, TmplFinanceFeedEdit, HtmlExtension)
 
-    tmpl, err := template.ParseFiles(htmlFinanceFeed, htmlFinanceEdit)
     if err != nil {
+        util.PrintError(err)
         return "", err
     }
 
-    financeFeed := models.FinanceFeed{
-        Expenses: expenses,
-        FinanceFeedEdit: models.FinanceFeedEdit{
-            Expense: expense,
-        },
+    tmpl, err := template.ParseFiles(htmlFinanceFeed, htmlFinanceFeedEdit)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    financeFeed, err := BuildFinanceFeed(expense.UserId)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    financeFeed.FinanceFeedEdit = models.FinanceFeedEdit{
+        Expense: expense,
     }
 
     var buf bytes.Buffer
@@ -308,35 +408,42 @@ func GetFinanceFeedEdit(expense models.Expense) (string, error) {
         return "", err
     }
 
+    util.PrintSuccess("returning finance feed edit")
     return buf.String(), nil
 }
 
-func GetFinanceFeedConfirm(newExpense models.Expense) (string, error) {
-    expenses, err := dao.GetExpensesForCurrentMonth(newExpense.UserId)
-
-    if err != nil {
-        return "", err
-    }
+func getFinanceFeedConfirm(expense models.Expense) (string, error) {
+    util.PrintMessage("getting finance feed confirm")
 
     htmlFinanceFeed := util.GetFilePath(TmplPath, TmplFinanceFeed, HtmlExtension)
     htmlFinanceFeedConfirm := util.GetFilePath(TmplPath, TmplFinanceFeedConfirm, HtmlExtension)
 
-    tmpl, err := template.ParseFiles(htmlFinanceFeed, htmlFinanceFeedConfirm)
     if err != nil {
+        util.PrintError(err)
         return "", err
     }
 
-    oldExpense, err := dao.GetExpense(newExpense.UserId)
+    tmpl, err := template.ParseFiles(htmlFinanceFeed, htmlFinanceFeedEdit)
     if err != nil {
+        util.PrintError(err)
         return "", err
     }
 
-    financeFeed := models.FinanceFeed{
-        Expenses: expenses,
-        FinanceFeedConfirm: models.FinanceFeedConfirm{
-            OldExpense: oldExpense,
-            NewExpense: newExpense,
-        },
+    oldExpense, err := dao.GetExpense(expense.ExpenseId)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    financeFeed, err := BuildFinanceFeed(expense.UserId)
+    if err != nil {
+        util.PrintError(err)
+        return "", err
+    }
+
+    financeFeed.FinanceFeedConfirm = models.FinanceFeedConfirm{
+        OldExpense: oldExpense,
+        NewExpense: expense,
     }
 
     var buf bytes.Buffer
@@ -345,34 +452,83 @@ func GetFinanceFeedConfirm(newExpense models.Expense) (string, error) {
         return "", err
     }
 
+    util.PrintSuccess("returning finance feed confirm")
     return buf.String(), nil
 }
 
-func GetFinanceFeedServerResponse(userId string, serverResponse models.ServerResponse) (string, error) {
-    expenses, err := dao.GetExpensesForCurrentMonth(userId)
+func PostFinanceFeed(expense models.Expense) (string, error) {
+    util.PrintMessage("Posting finance feed")
+
+    if expense.Name == "" || expense.Amount == 0 || expense.Category == "" {
+        return getFinanceFeedServerResponse(
+            expense.UserId,
+            models.ServerResponse{
+                Message: handler.InvalidExpenseInput,
+                ReturnEndpoint: handlers.FinanceFeedEndpoint,
+            },
+        )
+    }
+
+    util.PrintSuccess("returning finance feed edit")
+
+    return getFinanceFeedEdit(expense)
+}
+
+func PostFinanceFeedEdit(expense models.Expense) (string, error) {
+    util.PrintMessage("Posting finance feed edit")
+
+    if expense.Name == "" || expense.Amount == 0 || expense.Category == "" {
+        return getFinanceFeedServerResponse(
+            expense.UserId,
+            models.ServerResponse{
+                Message: handler.InvalidExpenseInput,
+                ReturnEndpoint: handlers.FinanceFeedEndpoint,
+            },
+        )
+    }
+
+    util.PrintSuccess("returning finance feed confirm")
+
+    return getFinanceFeedEdit(expense)
+}
+
+func PostFinanceFeedConfirm(expense models.Expense) (string, error) {
+    util.PrintMessage("Posting finance feed confirm")
+
+    if expense.Name == "" || expense.Amount == 0 || expense.Category == "" {
+        return getFinanceFeedServerResponse(
+            expense.UserId,
+            models.ServerResponse{
+                Message: handler.InvalidExpenseInput,
+                ReturnEndpoint: handlers.FinanceFeedEndpoint,
+            },
+        )
+    }
+
+    success, err := dao.UpdateExpense(expense)
 
     if err != nil {
-        return "", err
+        util.PrintError(err)
+        return "", nil
     }
 
-    htmlFinanceFeed := util.GetFilePath(TmplPath, TmplFinanceFeed, HtmlExtension)
-    htmlServerResponse := util.GetFilePath(TmplPath, TmplServerResponse, HtmlExtension)
-
-    tmpl, err := template.ParseFiles(htmlFinanceFeed, htmlServerResponse)
-    if err != nil {
-        return "", err
+    if !success {
+        return getFinanceFeedServerResponse(
+            expense.UserId,
+            models.ServerResponse{
+                Message: handler.FailedToUpdateExpense,
+                ReturnEndpoint: handlers.FinanceFeedEndpoint,
+            },
+        )
     }
 
-    financeFeed := models.FinanceFeed{
-        Expenses: expenses,
-        ServerResponse: serverResponse,
-    }
+    util.PrintSuccess("returning finance feed server response")
 
-    var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, TmplFinanceFeed, financeFeed)
-    if err != nil {
-        return "", err
-    }
-
-    return buf.String(), nil
+    return getFinanceFeedServerResponse(
+        expense.UserId,
+        models.ServerResponse{
+            Message: handler.SuccUpdateExpense,
+            ReturnEndpoint: handlers.FinanceFeedEndpoint,
+        },
+    )
 }

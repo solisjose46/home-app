@@ -39,7 +39,9 @@ const (
 	InvalidInput 					= "Bad Username and/or Passoword"
 	InvalidExpenseInput 			= "Name, Amount and Category cannot be empty!"
 	FailedToAddExpense 				= "Sorry! Failed to add expense"
+	FailedToUpdateExpense 			= "Sorry! Failed to update expense"
 	SuccAddExpense 					= "Expense successfully added!"
+	SuccUpdateExpense				= "Expense successfully updated!"
 	Expire	 						= -1
 )
 
@@ -296,6 +298,8 @@ func FinanceTrackConfirmHandler(w http.ResponseWriter, r *http.Request) {
 		Amount:   amount,
 		Category: r.FormValue(Category),
 	}
+
+	response, err := 
 
 	if expense.Name == "" || expense.Amount == 0 || expense.Category == "" {
 		response, err := templates.GetFinanceTrackServerResponse(

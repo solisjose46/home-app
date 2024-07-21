@@ -94,6 +94,9 @@ func AddExpense(expense models.Expense) (bool, error) {
         return false, err
     }
 
+    // what if no error and does not upload
+    // is that valid behavior
+
     util.PrintSuccess("expense added!")
     return true, nil
 }
