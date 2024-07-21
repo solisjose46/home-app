@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/gorilla/sessions"
 	"home-app/app/dao"
 	"home-app/app/models"
@@ -15,15 +14,6 @@ import (
 var store = sessions.NewCookieStore([]byte("something-very-secret"))
 
 const (
-	LogoutEndpoint					= "/logout"
-	LoginEndpoint					= "/login"
-	HomeEndpoint					= "/home"
-	FinanceEndpoint					= "/finance"
-	FinanceTrackEndpoint			= "/finance/track"
-	FinanceTrackConfirmEndpoint		= "/finance/track/confirm"
-	FinanceFeedEndpoint				= "/finance/feed"
-	FinanceFeedConfirmEndpoint		= "/finance/feed/confirm"
-	FinanceFeedEditEndpoint			= "/finance/feed/edit"
 	SessionName						= "session-name"
 	Username 						= "useranme"
 	Password 						= "password"
@@ -37,12 +27,6 @@ const (
 	MethodNotAllowed 				= "Method Not Allowed"
     GET 							= "GET "
     POST 							= "POST "
-	InvalidInput 					= "Bad Username and/or Passoword"
-	InvalidExpenseInput 			= "Name, Amount and Category cannot be empty!"
-	FailedToAddExpense 				= "Sorry! Failed to add expense"
-	FailedToUpdateExpense 			= "Sorry! Failed to update expense"
-	SuccAddExpense 					= "Expense successfully added!"
-	SuccUpdateExpense				= "Expense successfully updated!"
 	Expire	 						= -1
 )
 
@@ -61,12 +45,12 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if session.Values[Username] != nil {
-		http.Redirect(w, r, HomeEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, util.HomeEndpoint, http.StatusSeeOther)
 		return
 	}
 
     if r.Method == http.MethodGet {
-		util.PrintMessage(GET, LoginEndpoint)
+		util.PrintMessage(GET, util.LoginEndpoint)
 
         response, err := templates.GetLogin()
         if err != nil {
@@ -75,11 +59,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
             return
         }
         w.Write([]byte(response))
-		util.PrintSuccess(GET, LoginEndpoint)
+		util.PrintSuccess(GET, util.LoginEndpoint)
         return
     }
 
-	util.PrintMessage(POST, LoginEndpoint)
+	util.PrintMessage(POST, util.LoginEndpoint)
 
 	username := r.FormValue(Username)
 	password := r.FormValue(Password)
@@ -108,8 +92,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	session.Values[UserId] = userId
 	session.Save(r, w)
 
-	http.Redirect(w, r, HomeEndpoint, http.StatusSeeOther)
-	util.PrintSuccess(POST, LoginEndpoint)
+	http.Redirect(w, r, util.HomeEndpoint, http.StatusSeeOther)
+	util.PrintSuccess(POST, util.LoginEndpoint)
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
@@ -118,7 +102,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.PrintMessage(POST, LogoutEndpoint)
+	util.PrintMessage(POST, util.LogoutEndpoint)
 
 	session, err := store.Get(r, SessionName)
 
@@ -131,8 +115,8 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	session.Options.MaxAge = Expire
 	session.Save(r, w)
 
-	http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
-	util.PrintSuccess(POST, LogoutEndpoint)
+	http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
+	util.PrintSuccess(POST, util.LogoutEndpoint)
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
@@ -141,7 +125,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.PrintMessage(GET, HomeEndpoint)
+	util.PrintMessage(GET, util.HomeEndpoint)
 
 	session, err := store.Get(r, SessionName)
 
@@ -152,7 +136,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if session.Values[Username] == nil {
-		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
@@ -165,7 +149,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(response))
-	util.PrintSuccess(GET, HomeEndpoint)
+	util.PrintSuccess(GET, util.HomeEndpoint)
 }
 
 func FinanceHandler(w http.ResponseWriter, r *http.Request) {
@@ -174,7 +158,7 @@ func FinanceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.PrintMessage(GET, FinanceEndpoint)
+	util.PrintMessage(GET, util.FinanceEndpoint)
 
 	session, err := store.Get(r, SessionName)
 
@@ -185,12 +169,12 @@ func FinanceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if session.Values[Username] == nil {
-		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
 	userId := session.Values[UserId].(string)
-	response, err := GetFinance(userId)
+	response, err := templates.GetFinance(userId)
 
 	if err != nil {
 		util.PrintError(err)
@@ -200,7 +184,7 @@ func FinanceHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte(response))
 
-	util.PrintSuccess(GET, FinanceTrackEndpoint)
+	util.PrintSuccess(GET, util.FinanceTrackEndpoint)
 }
 
 func FinanceTrackHandler(w http.ResponseWriter, r *http.Request) {
@@ -218,14 +202,14 @@ func FinanceTrackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if session.Values[Username] == nil {
-		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
 	userId := session.Values[UserId].(string)
 
 	if r.Method == http.MethodGet {
-		util.PrintMessage(GET, FinanceTrackEndpoint)
+		util.PrintMessage(GET, util.FinanceTrackEndpoint)
 
 		response, err := templates.GetFinanceTrack(userId)
 		if err != nil {
@@ -235,11 +219,11 @@ func FinanceTrackHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.Write([]byte(response))
-		util.PrintSuccess(GET, FinanceTrackEndpoint)
+		util.PrintSuccess(GET, util.FinanceTrackEndpoint)
 		return
 	}
 
-	util.PrintMessage(POST, FinanceTrackEndpoint)
+	util.PrintMessage(POST, util.FinanceTrackEndpoint)
 
 	amount, err := strconv.ParseFloat(r.FormValue(Amount), 64)
 
@@ -265,7 +249,7 @@ func FinanceTrackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	w.Write([]byte(response))
-	util.PrintSuccess(POST, FinanceTrackEndpoint)
+	util.PrintSuccess(POST, util.FinanceTrackEndpoint)
 }
 
 func FinanceTrackConfirmHandler(w http.ResponseWriter, r *http.Request) {
@@ -274,7 +258,7 @@ func FinanceTrackConfirmHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.PrintMessage(POST, FinanceTrackConfirmEndpoint)
+	util.PrintMessage(POST, util.FinanceTrackConfirmEndpoint)
 
 	session, err := store.Get(r, SessionName)
 
@@ -285,7 +269,7 @@ func FinanceTrackConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if session.Values[Username] == nil {
-		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
@@ -313,7 +297,7 @@ func FinanceTrackConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(response))
-	util.PrintSuccess(POST, FinanceTrackConfirmEndpoint)
+	util.PrintSuccess(POST, util.FinanceTrackConfirmEndpoint)
 }
 
 func FinanceFeedHandler(w http.ResponseWriter, r *http.Request) {
@@ -331,7 +315,7 @@ func FinanceFeedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if session.Values[Username] == nil {
-		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
@@ -343,21 +327,21 @@ func FinanceFeedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		util.PrintMessage(GET, FinanceFeedEndpoint)
+		util.PrintMessage(GET, util.FinanceFeedEndpoint)
 
 		response, err := templates.GetFinanceFeed(userId)
-		if !err {
+		if err != nil {
 			util.PrintError(err)
 			http.Error(w, InternalServerError, http.StatusInternalServerError)
 			return
 		}
 
-		util.PrintSuccess(GET, FinanceFeedEndpoint)
+		util.PrintSuccess(GET, util.FinanceFeedEndpoint)
 		w.Write([]byte(response))
 		return
 	}
 
-	util.PrintMessage(POST, FinanceFeedEndpoint)
+	util.PrintMessage(POST, util.FinanceFeedEndpoint)
 
 	amount, err := strconv.ParseFloat(r.FormValue(Amount), 64)
 	if err != nil {
@@ -383,7 +367,7 @@ func FinanceFeedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(response))
-	util.PrintSuccess(POST, FinanceFeedEndpoint)
+	util.PrintSuccess(POST, util.FinanceFeedEndpoint)
 }
 
 func FinanceFeedEditHandler(w http.ResponseWriter, r *http.Request) {
@@ -392,7 +376,7 @@ func FinanceFeedEditHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.PrintMessage(POST, FinanceFeedEditEndpoint)
+	util.PrintMessage(POST, util.FinanceFeedEditEndpoint)
 
 	session, err := store.Get(r, SessionName)
 
@@ -403,11 +387,11 @@ func FinanceFeedEditHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if session.Values[Username] == nil {
-		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
-	amount, err := strconv.ParseFloat(r.FormValue(amount), 64)
+	amount, err := strconv.ParseFloat(r.FormValue(Amount), 64)
 	if err != nil {
 		util.PrintError(err)
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
@@ -429,7 +413,7 @@ func FinanceFeedEditHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write([]byte(response))
-	util.PrintSuccess(POST, FinanceFeedEditEndpoint)
+	util.PrintSuccess(POST, util.FinanceFeedEditEndpoint)
 }
 
 func FinanceFeedConfirmHandler(w http.ResponseWriter, r *http.Request) {
@@ -438,15 +422,15 @@ func FinanceFeedConfirmHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.PrintMessage(POST, FinanceFeedConfirmEndpoint)
+	util.PrintMessage(POST, util.FinanceFeedConfirmEndpoint)
 
 	session, _ := store.Get(r, SessionName)
 	if session.Values[Username] == nil {
-		http.Redirect(w, r, LoginEndpoint, http.StatusSeeOther)
+		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
-	amount, err := strconv.ParseFloat(r.FormValue(amount), 64)
+	amount, err := strconv.ParseFloat(r.FormValue(Amount), 64)
 	if err != nil {
 		util.PrintError(err)
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
@@ -470,5 +454,5 @@ func FinanceFeedConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(response))
-	util.PrintSuccess(POST, FinanceFeedConfirmEndpoint)
+	util.PrintSuccess(POST, util.FinanceFeedConfirmEndpoint)
 }

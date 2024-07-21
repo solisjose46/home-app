@@ -1,9 +1,6 @@
 package templates
 
 import (
-    "fmt"
-    "bytes"
-    "html/template"
     "time"
     "home-app/app/models"
     "home-app/app/dao"
@@ -14,23 +11,23 @@ func BuildFinanceTrack() (models.FinanceTrack, error) {
     util.PrintMessage("building finance track")
     var financeTrack models.FinanceTrack
 
-    financeTrack.month := time.Now().Format("July 2024")
+    financeTrack.Month = time.Now().Format("July 2024")
 
     categories, err := dao.GetCategoriesForCurrentMonth()
 
     if err != nil {
         util.PrintError(err)
-        return nil, err
+        return financeTrack, err
     }
 
     financeTrack.Categories = categories
 
-    return financeTrack
-
     util.PrintSuccess("returning finance track")
-}
 
-BuildFinanceFeed(userId string) (models.FinanceFeed, error) {
+    return financeTrack, nil
+    }
+
+func BuildFinanceFeed(userId string) (models.FinanceFeed, error) {
 	util.PrintMessage("building finance feed")
 
 	var financeFeed models.FinanceFeed
@@ -39,12 +36,12 @@ BuildFinanceFeed(userId string) (models.FinanceFeed, error) {
 
 	if err != nil {
 		util.PrintError(err)
-		return nil, err
+		return financeFeed, err
 	}
 
     financeFeed.Expenses = expenses
 
-	uitil.PrintSuccess("returning finance feed")
+	util.PrintSuccess("returning finance feed")
 
-	return financeFeed
+	return financeFeed, nil
 }

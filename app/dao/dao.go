@@ -14,6 +14,7 @@ const (
 	dbPath                  = "internal/db/sqlite/home.db"
     authUserQuery           = "SELECT password FROM users WHERE username = ?"
     userIdQuery             = "SELECT userId FROM users WHERE username = ?"
+    getExpenseQuery         = "SELECT e.expenseId AS ExpenseId, e.name AS Name, e.amount AS Amount, c.categoryName AS Category, u.username AS Username, e.userId AS UserId, e.createdAt AS Datetime FROM expenses e JOIN users u ON e.userId = u.userId JOIN categories c ON e.categoryId = c.categoryId WHERE e.expenseId = ?"
     addExpenseQuery         = "INSERT INTO expenses (userId, name, amount, category) VALUES (?, ?, ?, ?)"
     updateExpenseQuery      = "UPDATE expenses SET name = ?, amount = ?, category = ? WHERE expenseId = ?"
     monthlyExpensesQuery    = "SELECT e.expenseId AS ExpenseId, e.name AS Name, e.amount AS Amount, c.categoryName AS Category, u.username AS Username, e.userId AS UserId, e.createdAt AS Datetime FROM expenses e JOIN users u ON e.userId = u.userId JOIN categories c ON e.categoryId = c.categoryId WHERE e.createdAt BETWEEN ? AND ? ORDER BY e.createdAt DESC"
@@ -29,7 +30,7 @@ func InitDB() error {
     util.PrintMessage("Connecting to db")
 
 	if err != nil {
-        fmt.PrintError(err)
+        util.PrintError(err)
 		return err
 	}
 
@@ -59,7 +60,7 @@ func ValidateUser(username, password string) (bool, error) {
         return false, errors.New("password does not match")
     }
 
-    util.PrintSuccess("Succ Auth ", useranme)
+    util.PrintSuccess("Succ Auth ", username)
     return true, nil
 }
 
@@ -86,7 +87,7 @@ func AddExpense(expense models.Expense) (bool, error) {
         expense.UserId,
         expense.Name,
         expense.Amount,
-        expense.Category
+        expense.Category,
     )
 
     if err != nil {
@@ -104,12 +105,12 @@ func AddExpense(expense models.Expense) (bool, error) {
 func UpdateExpense(expense models.Expense) (bool, error) {
     util.PrintMessage("Attempting to update expense. expense: ", expense.Name)
 
-    _, err = dao.Exec(
+    _, err := dao.Exec(
         updateExpenseQuery, 
         expense.Name,
         expense.Amount,
         expense.Category,
-        expense.ExpenseId
+        expense.ExpenseId,
     )
     
     if err != nil {
@@ -136,7 +137,7 @@ func GetExpensesForCurrentMonth(userId string) ([]models.Expense, error) {
     rows, err := dao.Query(
         monthlyExpensesQuery,
         startOfMonthStr,
-        nextMonthStr
+        nextMonthStr,
     )
 
     if err != nil {
@@ -152,10 +153,10 @@ func GetExpensesForCurrentMonth(userId string) ([]models.Expense, error) {
             &expense.ExpenseId,
             &expense.Name,
             &expense.Amount,
-            &expense.Category
+            &expense.Category,
             &expense.Username,
             &expense.UserId,
-            &expense.Datetime
+            &expense.Datetime,
         )
 
         if err != nil {
@@ -186,10 +187,11 @@ func GetExpense(expenseId string) (models.Expense, error) {
 
     err := dao.QueryRow(getExpenseQuery, expenseId).Scan(
         &expense.ExpenseId, 
-        &expense.UserId, 
         &expense.Name, 
         &expense.Amount, 
         &expense.Category, 
+        &expense.Username,
+        &expense.UserId, 
         &expense.Datetime,
     )
 
