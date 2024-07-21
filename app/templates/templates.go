@@ -100,7 +100,7 @@ func PostLogin(username, password string) (string, error) {
     }
 
     util.PrintSuccess("authenticated!")
-    return GetHome()
+    return "", nil
 }
 
 func GetHome() (string, error) {
@@ -126,7 +126,7 @@ func GetHome() (string, error) {
 }
 
 
-func GetFinance(financeTrack models.FinanceTrack) (string, error) {
+func GetFinance(userId stirng) (string, error) {
     util.PrintMessage("Getting finance template")
 
     htmlFinance := util.GetTmplPath(TmplFinance)
@@ -143,6 +143,8 @@ func GetFinance(financeTrack models.FinanceTrack) (string, error) {
         return "", err
     }
 
+    financeTrack, err := BuildFinanceTrack(userId)
+
     var buf bytes.Buffer
     err = tmpl.ExecuteTemplate(&buf, TmplFinance, 
         models.Finance{
@@ -158,7 +160,7 @@ func GetFinance(financeTrack models.FinanceTrack) (string, error) {
     return buf.String(), nil
 }
 
-func GetFinanceTrack() (string, error) {
+func GetFinanceTrack(userId string) (string, error) {
     util.PrintMessage("Getting finance track server response template")
 
     htmlFinanceTrack := util.GetTmplPath(TmplFinanceTrack)
@@ -169,7 +171,7 @@ func GetFinanceTrack() (string, error) {
         return "", err
     }
 
-    financeTrack, err := BuildFinanceTrack()
+    financeTrack, err := BuildFinanceTrack(userId)
 
     if err != nil {
         fmt.PrintError(err)
