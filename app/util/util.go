@@ -11,6 +11,8 @@ const (
     Green  = "\033[32m"
     Yellow = "\033[33m"
     TmplDir = "web/templates/"
+    WebStaticDir = "web/static/"
+    StaticDir = "/static/"
     HtmlExtension = ".html"
 )
 

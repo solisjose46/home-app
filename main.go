@@ -1,8 +1,6 @@
 package main
 
 import (
-    "log"
-    "fmt"
     "net/http"
     "home-app/app/dao"
     "home-app/app/handlers"
@@ -13,7 +11,7 @@ func main() {
     // Initialize the database
     err := dao.InitDB()
     if err != nil {
-        log.Fatalf("Error initializing database: %v", err)
+        util.PrintError(err)
     }
     defer dao.CloseDB()
 
@@ -28,10 +26,15 @@ func main() {
     http.HandleFunc(util.FinanceFeedEditEndpoint, handlers.FinanceFeedEditHandler)
     http.HandleFunc(util.LogoutEndpoint, handlers.LogoutHandler)
 
+    // Serve static files from the web/static directory
+    staticFileDirectory := http.Dir(util.WebStaticDir)
+    staticFileHandler := http.StripPrefix(util.StaticDir, http.FileServer(staticFileDirectory))
+    http.Handle(util.StaticDir, staticFileHandler)
+
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
         http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
     })
 
-    fmt.Println("Server listening on port 8080...")
-    log.Fatal(http.ListenAndServe(":8080", nil))
+    util.PrintSuccess("Listening on :8080")
+    http.ListenAndServe(":8080", nil)
 }

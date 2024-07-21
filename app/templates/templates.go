@@ -57,7 +57,9 @@ func getLoginServerResponse(sr models.ServerResponse) (string, error) {
     }
 
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, TmplLogin, sr)
+    err = tmpl.ExecuteTemplate(&buf, TmplLogin, models.Login{
+        ServerResponse: sr,
+    })
     if err != nil {
         util.PrintError(err)
         return "", err

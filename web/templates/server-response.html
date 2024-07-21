@@ -2,12 +2,12 @@
 <div>
     <div>
         <div></div>
-        <div hx-get="{{ .ReturnEndpoint }}">X</div>
+        <div hx-get="{{ .ReturnEndpoint }}" hx-target="body">X</div>
     </div>
     <div>
         <div>{{ .Message }}</div>
         <div>
-            <button hx-get="{{ .ReturnEndpoint }}">Ok</button>
+            <button hx-get="{{ .ReturnEndpoint }}" hx-target="body">Ok</button>
         </div>
     </div>
 </div>

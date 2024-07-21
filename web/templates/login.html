@@ -15,7 +15,7 @@
             <h2>Login</h2>
         </div>
         <div>
-            <form>
+            <form hx-post="/login" hx-target="body">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" placeholder="username" required>
                 <label for="password">Password</label>
@@ -25,7 +25,7 @@
             </form>
         </div>
     </div>
-
+    <script src="/static/htmx.min.js"></script>
 </body>
 </html>
 {{ end }}
