@@ -132,8 +132,11 @@ func GetFinance(userId string) (string, error) {
 
     htmlFinance := util.GetTmplPath(TmplFinance)
     htmlFinanceTrack := util.GetTmplPath(TmplFinanceTrack)
+    htmlFinanceFeed := util.GetTmplPath(TmplFinanceFeed)
+    htmlFinanceTrackConfirm := util.GetTmplPath(TmplFinanceTrackConfirm)
+    htmlServerResponse := util.GetTmplPath(TmplServerResponse)
     
-    tmpl, err := template.ParseFiles(htmlFinance, htmlFinanceTrack)
+    tmpl, err := template.ParseFiles(htmlFinance, htmlFinanceTrack, htmlFinanceFeed, htmlFinanceTrackConfirm, htmlServerResponse)
     if err != nil {
         util.PrintError(err)
         return "", err

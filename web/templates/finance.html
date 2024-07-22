@@ -1,3 +1,4 @@
+{{ define "finance" }}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,20 +9,21 @@
 <body>
     <div>
         <div>
-            <h2 hx-get="/home">
+            <h2 hx-get="/home" hx-target="body">
                 Family
             </h2>
             <div>
-                <button hx-post="/logout"></button>
+                <button hx-post="/logout" hx-target="body"></button>
             </div>
         </div>
-        {{ if .FinanceTrack }}
-        {{ template "finance-track" .FinanceTrack }}
+        {{ with .FinanceTrack }}
+            {{ template "finance-track" .FinanceTrack }}
         {{ else  }}
-        {{ template "finance-feed" .FinanceFeed }}
+            {{ template "finance-feed" .FinanceFeed }}
         {{ end }}
         <div>
         </div>
     </div>
 </body>
 </html>
+{{ end }}

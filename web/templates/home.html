@@ -11,7 +11,7 @@
         <div>
             <h2>Family</h2>
         </div>
-        <div hx-get="/finance">
+        <div hx-get="/finance" hx-target="body">
             <div>
                 Finance
             </div>
@@ -20,7 +20,7 @@
             </div>
         </div>
         <div>
-            <button hx-post="/logout">logout</button>
+            <button hx-post="/logout" hx-target="body">logout</button>
         </div>
     </div>
 </body>

@@ -25,7 +25,7 @@ func BuildFinanceTrack() (models.FinanceTrack, error) {
     util.PrintSuccess("returning finance track")
 
     return financeTrack, nil
-    }
+}
 
 func BuildFinanceFeed(userId string) (models.FinanceFeed, error) {
 	util.PrintMessage("building finance feed")
