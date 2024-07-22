@@ -91,6 +91,7 @@ func PostLogin(username, password string) (string, error) {
     }
 
     if !valid {
+        util.PrintMessage("user not auth")
         return getLoginServerResponse(
             models.ServerResponse{
                 Message: util.InvalidInput,

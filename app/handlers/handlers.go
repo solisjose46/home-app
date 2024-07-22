@@ -8,6 +8,7 @@ import (
 	"home-app/app/util"
 	"net/http"
 	"strconv"
+	"fmt"
 )
 
 // TODO: import from ignored file
@@ -15,13 +16,15 @@ var store = sessions.NewCookieStore([]byte("something-very-secret"))
 
 const (
 	SessionName						= "session-name"
-	Username 						= "username"
-	Password 						= "password"
-	UserId 							= "user-id"
-	Amount 							= "amount"
-	ExpenseId 						= "expense-id"
-	Name 							= "name"
-	Category 						= "category"
+	SessionUserId					= "user-id"
+	SessionUsername 				= "username"
+	FormUsername 					= "username"
+	FormPassword					= "password"
+	FormUserId						= "user-id"
+	FormAmount 						= "amount"
+	FormExpenseId 					= "expense-id"
+	FormName 						= "name"
+	FormCategory 					= "category"
 	InternalServerError 			= "Internal Server Error"
 	Redirect 						= "Redirect 303"
 	MethodNotAllowed 				= "Method Not Allowed"
@@ -29,6 +32,15 @@ const (
     POST 							= "POST "
 	Expire	 						= -1
 )
+
+func StoreInit() {
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   3600, // 1 hour
+		HttpOnly: true,
+		Secure:   false, // Set to true in production
+	}
+}
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet && r.Method != http.MethodPost {
@@ -44,7 +56,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if session.Values[Username] != nil {
+	if session.Values[SessionUsername] != nil {
 		http.Redirect(w, r, util.HomeEndpoint, http.StatusSeeOther)
 		return
 	}
@@ -65,12 +77,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	util.PrintMessage(POST, util.LoginEndpoint)
 
-	username := r.FormValue(Username)
-	password := r.FormValue(Password)
-
-	util.PrintMessage("username\n", username)
-	util.PrintMessage("password\n", password)
-
+	username := r.FormValue(FormUsername)
+	password := r.FormValue(FormPassword)
 
 	response, err := templates.PostLogin(username, password)
 
@@ -92,9 +100,20 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session.Values[Username] = username
-	session.Values[UserId] = userId
-	session.Save(r, w)
+	session.Values[SessionUsername] = username
+	session.Values[SessionUserId] = userId
+	err = session.Save(r, w)
+
+	if err != nil {
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println("Session Values:")
+	for key, value := range session.Values {
+		fmt.Printf("%s: %v\n", key, value)
+	}
 
 	http.Redirect(w, r, util.HomeEndpoint, http.StatusSeeOther)
 	util.PrintSuccess(POST, util.LoginEndpoint)
@@ -139,7 +158,19 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if session.Values[Username] == nil {
+	// fmt.Println("Headers:")
+	// for name, values := range r.Header {
+	// 	for _, value := range values {
+	// 		fmt.Printf("%s: %s\n", name, value)
+	// 	}
+	// }
+
+	fmt.Println("Session Values:")
+	for key, value := range session.Values {
+		fmt.Printf("%s: %v\n", key, value)
+	}
+
+	if session.Values[SessionUsername] == nil {
 		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
@@ -172,12 +203,12 @@ func FinanceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if session.Values[Username] == nil {
+	if session.Values[SessionUsername] == nil {
 		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
-	userId := session.Values[UserId].(string)
+	userId := session.Values[SessionUserId].(string)
 	response, err := templates.GetFinance(userId)
 
 	if err != nil {
@@ -205,12 +236,12 @@ func FinanceTrackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if session.Values[Username] == nil {
+	if session.Values[SessionUsername] == nil {
 		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
-	userId := session.Values[UserId].(string)
+	userId := session.Values[SessionUserId].(string)
 
 	if r.Method == http.MethodGet {
 		util.PrintMessage(GET, util.FinanceTrackEndpoint)
@@ -229,7 +260,7 @@ func FinanceTrackHandler(w http.ResponseWriter, r *http.Request) {
 
 	util.PrintMessage(POST, util.FinanceTrackEndpoint)
 
-	amount, err := strconv.ParseFloat(r.FormValue(Amount), 64)
+	amount, err := strconv.ParseFloat(r.FormValue(FormAmount), 64)
 
 	if err != nil {
 		util.PrintError(err)
@@ -239,9 +270,9 @@ func FinanceTrackHandler(w http.ResponseWriter, r *http.Request) {
 
 	expense := models.Expense{
 		UserId:   userId,
-		Name:     r.FormValue(Name),
+		Name:     r.FormValue(FormName),
 		Amount:   amount,
-		Category: r.FormValue(Category),
+		Category: r.FormValue(FormCategory),
 	}
 
 	response, err := templates.PostFinanceTrack(expense)
@@ -272,12 +303,12 @@ func FinanceTrackConfirmHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if session.Values[Username] == nil {
+	if session.Values[SessionUsername] == nil {
 		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
-	amount, err := strconv.ParseFloat(r.FormValue(Amount), 64)
+	amount, err := strconv.ParseFloat(r.FormValue(FormAmount), 64)
 	
 	if err != nil {
 		util.PrintError(err)
@@ -286,10 +317,10 @@ func FinanceTrackConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	expense := models.Expense{
-		UserId:   session.Values[UserId].(string),
-		Name:     r.FormValue(Name),
+		UserId:   session.Values[SessionUserId].(string),
+		Name:     r.FormValue(FormName),
 		Amount:   amount,
-		Category: r.FormValue(Category),
+		Category: r.FormValue(FormCategory),
 	}
 
 	response, err := templates.PostFinanceTrackConfirm(expense)
@@ -318,12 +349,12 @@ func FinanceFeedHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if session.Values[Username] == nil {
+	if session.Values[SessionUsername] == nil {
 		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
-	userId, ok:= session.Values[UserId].(string)
+	userId, ok:= session.Values[SessionUserId].(string)
 	if !ok {
 		util.PrintError(err)
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
@@ -347,7 +378,7 @@ func FinanceFeedHandler(w http.ResponseWriter, r *http.Request) {
 
 	util.PrintMessage(POST, util.FinanceFeedEndpoint)
 
-	amount, err := strconv.ParseFloat(r.FormValue(Amount), 64)
+	amount, err := strconv.ParseFloat(r.FormValue(FormAmount), 64)
 	if err != nil {
 		util.PrintError(err)
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
@@ -355,11 +386,11 @@ func FinanceFeedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	expense := models.Expense{
-		ExpenseId: r.FormValue(ExpenseId),
-		UserId:    session.Values[UserId].(string),
-		Name:      r.FormValue(Name),
+		ExpenseId: r.FormValue(FormExpenseId),
+		UserId:    session.Values[SessionUsername].(string),
+		Name:      r.FormValue(FormName),
 		Amount:    amount,
-		Category:  r.FormValue(Category),
+		Category:  r.FormValue(FormCategory),
 	}
 
 	response, err := templates.PostFinanceFeed(expense)
@@ -390,12 +421,12 @@ func FinanceFeedEditHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if session.Values[Username] == nil {
+	if session.Values[SessionUsername] == nil {
 		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
-	amount, err := strconv.ParseFloat(r.FormValue(Amount), 64)
+	amount, err := strconv.ParseFloat(r.FormValue(FormAmount), 64)
 	if err != nil {
 		util.PrintError(err)
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
@@ -403,11 +434,11 @@ func FinanceFeedEditHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	expense := models.Expense{
-		ExpenseId: r.FormValue(ExpenseId),
-		UserId:    session.Values[UserId].(string),
-		Name:      r.FormValue(Name),
+		ExpenseId: r.FormValue(FormExpenseId),
+		UserId:    session.Values[SessionUserId].(string),
+		Name:      r.FormValue(FormName),
 		Amount:    amount,
-		Category:  r.FormValue(Category),
+		Category:  r.FormValue(FormCategory),
 	}
 
 	response, err := templates.PostFinanceFeedEdit(expense)
@@ -428,13 +459,20 @@ func FinanceFeedConfirmHandler(w http.ResponseWriter, r *http.Request) {
 
 	util.PrintMessage(POST, util.FinanceFeedConfirmEndpoint)
 
-	session, _ := store.Get(r, SessionName)
-	if session.Values[Username] == nil {
+	session, err := store.Get(r, SessionName)
+
+	if err != nil {
+		util.PrintError(err)
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	if session.Values[SessionUsername] == nil {
 		http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
 		return
 	}
 
-	amount, err := strconv.ParseFloat(r.FormValue(Amount), 64)
+	amount, err := strconv.ParseFloat(r.FormValue(FormAmount), 64)
 	if err != nil {
 		util.PrintError(err)
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
@@ -442,11 +480,11 @@ func FinanceFeedConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	expense := models.Expense{
-		ExpenseId: r.FormValue(ExpenseId),
-		UserId:    session.Values[UserId].(string),
-		Name:      r.FormValue(Name),
+		ExpenseId: r.FormValue(FormExpenseId),
+		UserId:    session.Values[SessionUserId].(string),
+		Name:      r.FormValue(FormName),
 		Amount:    amount,
-		Category:  r.FormValue(Category),
+		Category:  r.FormValue(FormCategory),
 	}
 
 	response, err := templates.PostFinanceFeedConfirm(expense)

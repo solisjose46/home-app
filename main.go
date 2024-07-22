@@ -15,6 +15,8 @@ func main() {
     }
     defer dao.CloseDB()
 
+    handlers.StoreInit()
+
     // Route definitions
     http.HandleFunc(util.LoginEndpoint, handlers.LoginHandler)
     http.HandleFunc(util.HomeEndpoint, handlers.HomeHandler)
