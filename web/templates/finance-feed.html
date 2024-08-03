@@ -1,15 +1,15 @@
 {{ define "finance-feed" }}
 <div class="finance-substate">
-    {{ with .FinanceFeedEdit }}
-        {{ template "finance-feed-edit" .FinanceFeedEdit }}
+    {{ if .FinanceFeedEdit }}
+        {{ template "finance-feed-edit" . }}
     {{ end }}
         
-    {{ with .FinanceFeedConfirm }}
-        {{ template "finance-feed-confirm" .FinanceFeedConfirm }}
+    {{ if .FinanceFeedConfirm }}
+        {{ template "finance-feed-confirm" . }}
     {{ end }}
 
-    {{ with .ServerResponse }}
-        {{ template "server-response" .ServerResponse }}
+    {{ if .ServerResponse }}
+        {{ template "server-response" . }}
     {{ end }}
     <div>
         <div><button hx-get="/finance/track">Track</button></div>

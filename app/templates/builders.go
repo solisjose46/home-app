@@ -7,41 +7,39 @@ import (
     "github.com/solisjose46/pretty-print/debug"
 )
 
-func BuildFinanceTrack() (models.FinanceTrack, error) {
+func BuildFinanceTrack() (*models.FinanceTrack, error) {
     debug.PrintInfo(BuildFinanceTrack, "building finance track")
-    var financeTrack models.FinanceTrack
 
-    financeTrack.Month = time.Now().Format("July 2024")
+    month := time.Now().Format("July 2024")
 
     categories, err := dao.GetCategoriesForCurrentMonth()
 
     if err != nil {
         debug.PrintError(BuildFinanceTrack, err)
-        return financeTrack, err
+        return nil, err
     }
-
-    financeTrack.Categories = categories
 
     debug.PrintSucc(BuildFinanceTrack, "returning finance track")
 
-    return financeTrack, nil
+    return &models.FinanceTrack{
+        Month: month,
+        Categories: categories,
+    }, nil
 }
 
-func BuildFinanceFeed(userId string) (models.FinanceFeed, error) {
+func BuildFinanceFeed(userId string) (*models.FinanceFeed, error) {
 	debug.PrintInfo(BuildFinanceFeed, "building finance feed")
-
-	var financeFeed models.FinanceFeed
 
 	expenses, err := dao.GetExpensesForCurrentMonth(userId)
 
 	if err != nil {
 		debug.PrintError(BuildFinanceFeed, err)
-		return financeFeed, err
+		return nil, err
 	}
-
-    financeFeed.Expenses = expenses
 
 	debug.PrintSucc(BuildFinanceFeed, "returning finance feed")
 
-	return financeFeed, nil
+	return &models.FinanceFeed{
+        Expenses: expenses,
+    }, nil
 }

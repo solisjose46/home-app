@@ -264,7 +264,7 @@ func FinanceTrackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expense := models.Expense{
+	expense := &models.Expense{
 		UserId:   userId,
 		Name:     r.FormValue(FormName),
 		Amount:   amount,
@@ -312,7 +312,7 @@ func FinanceTrackConfirmHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expense := models.Expense{
+	expense := &models.Expense{
 		UserId:   session.Values[SessionUserId].(string),
 		Name:     r.FormValue(FormName),
 		Amount:   amount,
@@ -381,7 +381,7 @@ func FinanceFeedHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expense := models.Expense{
+	expense := &models.Expense{
 		ExpenseId: r.FormValue(FormExpenseId),
 		UserId:    session.Values[SessionUsername].(string),
 		Name:      r.FormValue(FormName),
@@ -429,7 +429,7 @@ func FinanceFeedEditHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expense := models.Expense{
+	expense := &models.Expense{
 		ExpenseId: r.FormValue(FormExpenseId),
 		UserId:    session.Values[SessionUserId].(string),
 		Name:      r.FormValue(FormName),
@@ -475,7 +475,7 @@ func FinanceFeedConfirmHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expense := models.Expense{
+	expense := &models.Expense{
 		ExpenseId: r.FormValue(FormExpenseId),
 		UserId:    session.Values[SessionUserId].(string),
 		Name:      r.FormValue(FormName),

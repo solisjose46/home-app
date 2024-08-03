@@ -16,8 +16,8 @@
                 <button hx-post="/logout" hx-target="body">Logout</button>
             </div>
         </div>
-        {{ with .FinanceTrack }}
-            {{ template "finance-track" . }}
+        {{ if .FinanceTrack }}
+            {{ template "finance-track" .FinanceTrack }}
         {{ else  }}
             {{ template "finance-feed" .FinanceFeed }}
         {{ end }}

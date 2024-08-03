@@ -1,9 +1,9 @@
 {{ define "finance-track" }}
 <div class="finance-substate">
-    {{ with .FinanceTrackConfirm }}
+    {{ if .FinanceTrackConfirm }}
         {{ template "finance-track-confirm" . }}
     {{ end }}
-    {{ with .ServerResponse }}
+    {{ if .ServerResponse }}
         {{ template "server-response" . }}
     {{ end }}
     <div>

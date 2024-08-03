@@ -85,7 +85,7 @@ func GetUserId(username string) (string, error) {
     return userId, nil
 }
 
-func AddExpense(expense models.Expense) (bool, error) {
+func AddExpense(expense *models.Expense) (bool, error) {
     debug.PrintInfo(AddExpense, "attempting to add expense")
 
     _, err := dao.Exec(
@@ -105,7 +105,7 @@ func AddExpense(expense models.Expense) (bool, error) {
     return true, nil
 }
 
-func UpdateExpense(expense models.Expense) (bool, error) {
+func UpdateExpense(expense *models.Expense) (bool, error) {
     debug.PrintInfo(UpdateExpense, "Attempting to update expense. expense:", expense.Name)
 
     _, err := dao.Exec(
@@ -125,7 +125,7 @@ func UpdateExpense(expense models.Expense) (bool, error) {
     return true, nil
 }
 
-func GetExpensesForCurrentMonth(userId string) ([]models.Expense, error) {
+func GetExpensesForCurrentMonth(userId string) (*[]models.Expense, error) {
     debug.PrintInfo(GetExpensesForCurrentMonth, "attempting to get monthly expense")
 
     now := time.Now()
@@ -183,11 +183,11 @@ func GetExpensesForCurrentMonth(userId string) ([]models.Expense, error) {
     }
 
     debug.PrintSucc(GetExpensesForCurrentMonth, "got monthly expenses")
-    return expenses, nil
+    return &expenses, nil
 }
 
 
-func GetExpense(expenseId string) (models.Expense, error) {
+func GetExpense(expenseId string) (*models.Expense, error) {
     debug.PrintInfo(GetExpense, "getting expense w/ id: ", expenseId)
     var expense models.Expense
 
@@ -204,18 +204,18 @@ func GetExpense(expenseId string) (models.Expense, error) {
     if err != nil {
         if err == sql.ErrNoRows {
             debug.PrintError(GetExpense, err)
-            return expense, errors.New("expense not found")
+            return nil, errors.New("expense not found")
         }
 
         debug.PrintError(GetExpense, err)
-        return expense, err
+        return nil, err
     }
 
     debug.PrintSucc(GetExpense, "expense found!")
-    return expense, nil
+    return &expense, nil
 }
 
-func GetCategoriesForCurrentMonth() ([]models.Category, error) {
+func GetCategoriesForCurrentMonth() (*[]models.Category, error) {
     debug.PrintInfo(GetCategoriesForCurrentMonth, "Getting categories")
     now := time.Now()
     firstOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
@@ -248,5 +248,5 @@ func GetCategoriesForCurrentMonth() ([]models.Category, error) {
     }
 
     debug.PrintSucc(GetCategoriesForCurrentMonth, "Got categories!")
-    return categories, nil
+    return &categories, nil
 }

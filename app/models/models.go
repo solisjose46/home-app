@@ -12,7 +12,7 @@ type Expense struct {
 	Name      string
 	Amount    float64
 	Category  string
-	Username      string
+	Username  string
 	UserId    string
 	Datetime  time.Time
 	IsOwner   bool
@@ -25,37 +25,37 @@ type Category struct {
 }
 
 type Login struct {
-	ServerResponse ServerResponse
+	ServerResponse *ServerResponse
 }
 
 type FinanceTrack struct {
 	Month           string
-	Categories      []Category
-	ServerResponse  ServerResponse
-	FinanceTrackConfirm FinanceTrackConfirm
+	Categories      *[]Category
+	ServerResponse  *ServerResponse
+	FinanceTrackConfirm *FinanceTrackConfirm
 }
 
 type FinanceFeed struct {
-	ServerResponse    ServerResponse
-	FinanceFeedEdit   FinanceFeedEdit
-	FinanceFeedConfirm FinanceFeedConfirm
-	Expenses          []Expense
+	ServerResponse    *ServerResponse
+	FinanceFeedEdit   *FinanceFeedEdit
+	FinanceFeedConfirm *FinanceFeedConfirm
+	Expenses          *[]Expense
 }
 
 type Finance struct {
-	FinanceTrack FinanceTrack
-	FinanceFeed FinanceFeed
+	FinanceTrack *FinanceTrack
+	FinanceFeed *FinanceFeed
 }
 
 type FinanceTrackConfirm struct {
-	Expense Expense
+	Expense *Expense
 }
 
 type FinanceFeedEdit struct {
-	Expense Expense
+	Expense *Expense
 }
 
 type FinanceFeedConfirm struct {
-	OldExpense Expense
-	NewExpense Expense
+	OldExpense *Expense
+	NewExpense *Expense
 }
