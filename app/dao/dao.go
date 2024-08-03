@@ -169,6 +169,7 @@ func GetExpensesForCurrentMonth(userId string) ([]models.Expense, error) {
         }
 
         // this seems messy
+        // TODO: find better way to do this
         if expense.ExpenseId == userId {
             expense.IsOwner = true
         } else {
