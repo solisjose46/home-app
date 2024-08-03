@@ -5,13 +5,15 @@ import (
     "home-app/app/dao"
     "home-app/app/handlers"
     "home-app/app/util"
+    "github.com/solisjose46/pretty-print/debug"
 )
 
 func main() {
     // Initialize the database
     err := dao.InitDB()
     if err != nil {
-        util.PrintError(err)
+        debug.PrintError(main, err)
+
     }
     defer dao.CloseDB()
 
@@ -37,6 +39,6 @@ func main() {
         http.Redirect(w, r, util.LoginEndpoint, http.StatusSeeOther)
     })
 
-    util.PrintSuccess("Listening on :8080")
+    debug.PrintSucc(main, "Listening on :8080")
     http.ListenAndServe(":8080", nil)
 }

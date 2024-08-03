@@ -442,7 +442,6 @@ func getFinanceFeedConfirm(expense models.Expense) (string, error) {
         return "", err
     }
 
-    util.PrintSuccess("returning finance feed confirm")
     debug.PrintSucc(getFinanceFeedConfirm, "returning finance feed confirm")
     return buf.String(), nil
 }
@@ -484,7 +483,6 @@ func PostFinanceFeedEdit(expense models.Expense) (string, error) {
 }
 
 func PostFinanceFeedConfirm(expense models.Expense) (string, error) {
-    util.PrintMessage("Posting finance feed confirm")
     debug.PrintInfo(PostFinanceFeedConfirm, "Posting finance feed confirm")
 
     if expense.Name == "" || expense.Amount == 0 || expense.Category == "" {
