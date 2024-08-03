@@ -6,13 +6,13 @@
     </div>
     <div>
         <div>Are you sure you want to add the following expense?</div>
-        <div>{{ .Name }} {{ .Amount }} [{{ .Category }}]</div>
+        <div>{{ .Expense.Name }} {{ .Expense.Amount }} [{{ .Expense.Category }}]</div>
         <div>
             <div>
                 <form hx-post="/finance/track/confirm" hx-target="#finance-substate" hx-swap="outerHTML">
-                    <input type="hidden" name="name" value="{{ .Name }}" readonly>
-                    <input type="hidden" name="amount" value="{{ .Amount }}" readonly>
-                    <input type="hidden" name="category" value="{{ .Category }}" readonly>
+                    <input type="hidden" name="name" value="{{ .Expense.Name }}" readonly>
+                    <input type="hidden" name="amount" value="{{ .Expense.Amount }}" readonly>
+                    <input type="hidden" name="category" value="{{ .Expense.Category }}" readonly>
                     <button type="submit">Yes</button>
                 </form>
             </div>

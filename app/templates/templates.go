@@ -132,11 +132,20 @@ func GetFinance(userId string) (string, error) {
 
     htmlFinance := util.GetTmplPath(TmplFinance)
     htmlFinanceTrack := util.GetTmplPath(TmplFinanceTrack)
-    htmlFinanceFeed := util.GetTmplPath(TmplFinanceFeed)
     htmlFinanceTrackConfirm := util.GetTmplPath(TmplFinanceTrackConfirm)
     htmlServerResponse := util.GetTmplPath(TmplServerResponse)
+
+    htmlFinanceFeed := util.GetTmplPath(TmplFinanceFeed)
+    htmlFinanceFeedEdit := util.GetTmplPath(TmplFinanceFeedEdit)
+    htmlFinanceFeedConfirm := util.GetTmplPath(TmplFinanceFeedConfirm)
     
-    tmpl, err := template.ParseFiles(htmlFinance, htmlFinanceTrack, htmlFinanceFeed, htmlFinanceTrackConfirm, htmlServerResponse)
+    tmpl, err := template.ParseFiles(
+        htmlFinance, htmlFinanceTrack,
+        htmlFinanceTrackConfirm, htmlServerResponse,
+        htmlFinanceFeed, htmlFinanceFeedEdit,
+        htmlFinanceFeedConfirm,
+    )
+
     if err != nil {
         debug.PrintError(GetFinance, err)
         return "", err
@@ -149,12 +158,18 @@ func GetFinance(userId string) (string, error) {
 
     financeTrack, err := BuildFinanceTrack()
 
+    if err != nil {
+        debug.PrintError(GetFinance, err)
+        return "", err
+    }
+
     var buf bytes.Buffer
     err = tmpl.ExecuteTemplate(&buf, TmplFinance, 
         models.Finance{
             FinanceTrack: financeTrack,
         },
     )
+
     if err != nil {
         debug.PrintError(GetFinance, err)
         return "", err

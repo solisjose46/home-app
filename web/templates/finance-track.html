@@ -1,10 +1,10 @@
 {{ define "finance-track" }}
 <div class="finance-substate">
     {{ with .FinanceTrackConfirm }}
-        {{ template "finance-track-confirm" .FinanceTrackConfirm }}
+        {{ template "finance-track-confirm" . }}
     {{ end }}
     {{ with .ServerResponse }}
-        {{ template "server-response" .ServerResponse }}
+        {{ template "server-response" . }}
     {{ end }}
     <div>
         <div>Track</div>
