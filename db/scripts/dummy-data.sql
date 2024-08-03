@@ -1,6 +1,6 @@
 -- Insert dummy data into users table
-INSERT INTO users (username, password) VALUES ('bob12', 'password123');
-INSERT INTO users (username, password) VALUES ('alice9', 'password321');
+-- INSERT INTO users (username, password) VALUES ('bob12', 'password123');
+-- INSERT INTO users (username, password) VALUES ('alice9', 'password321');
 
 -- Insert dummy data into categories table --
 INSERT INTO categories (categoryName, categoryLimit)
