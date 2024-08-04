@@ -5,7 +5,7 @@
         <div hx-get="/finance/feed" hx-target="#finance-substate" hx-swap="outerHTML">x</div>
     </div>
     <div>
-        <form hx-post="/finance/feed/confirm" hx-target="#finance-substate" hx-swap="outerHTML">
+        <form hx-post="/finance/feed/edit" hx-target="#finance-substate" hx-swap="outerHTML">
             <input type="hidden" name="expense-id" value="{{ .Expense.ExpenseId }}" readonly>
 			<label for="name">Name</label>
 			<input type="text" id="name" name="name" value="{{ .Expense.Name }}" required>
@@ -17,7 +17,7 @@
 				<option value="Seattle Groceries" {{if eq .Expense.Category "Seattle Groceries" }} selected {{ end }}>Seattle Groceries</option>
 				<option value="Phx Dine Out" {{if eq .Expense.Category "Phx Dine Out" }} selected {{ end }}>Phx Dine Out</option>
                 <option value="Seattle Cleaning" {{if eq .Expense.Category "Seattle Cleaning" }} selected {{ end }}>Seattle Cleaning</option>
-                <option value="Phx Grocerie" {{if eq .Expense.Category "pg" }} selected {{ end }}>Phx Groceries</option>
+                <option value="Phx Groceries" {{if eq .Expense.Category "Phx Groceries" }} selected {{ end }}>Phx Groceries</option>
 			</select>
             <button type="submit">Edit</button>
         </form>

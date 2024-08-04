@@ -372,7 +372,7 @@ func FinanceFeedHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	debug.PrintSucc(FinanceFeedHandler, POST, util.FinanceFeedEndpoint)
+	debug.PrintInfo(FinanceFeedHandler, POST, util.FinanceFeedEndpoint)
 
 	amount, err := strconv.ParseFloat(r.FormValue(FormAmount), 64)
 	if err != nil {
@@ -383,7 +383,7 @@ func FinanceFeedHandler(w http.ResponseWriter, r *http.Request) {
 
 	expense := &models.Expense{
 		ExpenseId: r.FormValue(FormExpenseId),
-		UserId:    session.Values[SessionUsername].(string),
+		UserId:    session.Values[SessionUserId].(string),
 		Name:      r.FormValue(FormName),
 		Amount:    amount,
 		Category:  r.FormValue(FormCategory),

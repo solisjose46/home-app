@@ -467,10 +467,11 @@ func getFinanceFeedConfirm(expense *models.Expense) (string, error) {
     htmlFinanceFeed := util.GetTmplPath(TmplFinanceFeed)
     htmlFinanceFeedEdit := util.GetTmplPath(TmplFinanceFeedEdit)
     htmlFinanceFeedConfirm := util.GetTmplPath(TmplFinanceFeedConfirm)
+    htmlServerResponse := util.GetTmplPath(TmplServerResponse)
     
     tmpl, err := template.ParseFiles(
         htmlFinanceFeed, htmlFinanceFeedEdit,
-        htmlFinanceFeedConfirm,
+        htmlFinanceFeedConfirm, htmlServerResponse,
     )
 
     if err != nil {
@@ -541,7 +542,7 @@ func PostFinanceFeedEdit(expense *models.Expense) (string, error) {
     }
 
     debug.PrintSucc(PostFinanceFeedEdit, "returning finance feed confirm")
-    return getFinanceFeedEdit(expense)
+    return getFinanceFeedConfirm(expense)
 }
 
 func PostFinanceFeedConfirm(expense *models.Expense) (string, error) {

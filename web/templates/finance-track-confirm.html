@@ -2,7 +2,7 @@
 <div>
     <div>
         <div>Confirm</div>
-        <div hx-get="/finance/track">X</div>
+        <div hx-get="/finance/track" hx-target="#finance-substate" hx-swap="outerHTML">X</div>
     </div>
     <div>
         <div>Are you sure you want to add the following expense?</div>
@@ -17,7 +17,7 @@
                 </form>
             </div>
             <div>
-                <button hx-get="/finance/track">Cancel</button>
+                <button hx-get="/finance/track" hx-target="#finance-substate" hx-swap="outerHTML">Cancel</button>
             </div>
         </div>
     </div>

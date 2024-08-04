@@ -22,7 +22,7 @@
             <div>{{ .Username }}</div>
             {{ if .IsOwner }}
             <div>
-                <form hx-post="/finance/feed/edit" hx-target="#finance-substate" hx-swap="outerHTML">
+                <form hx-post="/finance/feed" hx-target="#finance-substate" hx-swap="outerHTML">
                     <input type="hidden" name="expense-id" value="{{ .ExpenseId }}" readonly>
                     <input type="hidden" name="name" value="{{ .Name }}" readonly>
                     <input type="hidden" name="amount" value="{{ .Amount }}" readonly>
