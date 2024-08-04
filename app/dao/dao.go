@@ -4,91 +4,83 @@ import (
     _ "github.com/mattn/go-sqlite3"
     "database/sql"
     "errors"
+    "github.com/solisjose46/pretty-print/debug"
     "golang.org/x/crypto/bcrypt"
     "home-app/app/models"
     "time"
-    "github.com/solisjose46/pretty-print/debug"
 )
 
-const (
-	dbPath                  = "db/home.db"
-    authUserQuery           = "SELECT password FROM users WHERE username = ?"
-    userIdQuery             = "SELECT userId FROM users WHERE username = ?"
-    getExpenseQuery         = "SELECT e.expenseId AS ExpenseId, e.name AS Name, e.amount AS Amount, c.categoryName AS Category, u.username AS Username, e.userId AS UserId, e.createdAt AS Datetime FROM expenses e JOIN users u ON e.userId = u.userId JOIN categories c ON e.categoryId = c.categoryId WHERE e.expenseId = ?"
-    addExpenseQuery         = "INSERT INTO expenses (userId, name, amount, categoryId, createdAt) SELECT ?, ?, ?, categoryId, CURRENT_TIMESTAMP FROM categories WHERE categoryName = ?"
-    updateExpenseQuery      = "WITH CategoryID AS (SELECT categoryId FROM categories WHERE categoryName = ?) UPDATE expenses SET name = ?, amount = ?, categoryId = (SELECT categoryId FROM CategoryID) WHERE expenseId = ?"
-    monthlyExpensesQuery    = "SELECT e.expenseId AS ExpenseId, e.name AS Name, e.amount AS Amount, c.categoryName AS Category, u.username AS Username, e.userId AS UserId, e.createdAt AS Datetime FROM expenses e JOIN users u ON e.userId = u.userId JOIN categories c ON e.categoryId = c.categoryId WHERE e.createdAt BETWEEN ? AND ? ORDER BY e.createdAt DESC"
-    monthlyCategoriesQuery  = "SELECT c.categoryName, SUM(e.amount) as balance, c.categoryLimit FROM categories c JOIN expenses e ON c.categoryId = e.categoryId WHERE e.createdAt >= ? AND e.createdAt < ? GROUP BY c.categoryName, c.categoryLimit"
-)
+type Dao struct{
+    conn *sql.DB
+}
 
-var dao *sql.DB
-
-func InitDB() error {
+func (dao *Dao) InitDB() error {
+    debug.PrintInfo(dao.InitDB, "Initializing db")
 	var err error
-    dao, err = sql.Open("sqlite3", dbPath)
+    dao.conn, err = sql.Open("sqlite3", dbPath)
 
-    debug.PrintInfo(InitDB, "Connecting to db")
+    debug.PrintInfo(dao.InitDB, "Connecting to db")
 
 	if err != nil {
-        debug.PrintError(InitDB, err)
+        debug.PrintError(dao.InitDB, err)
 		return err
 	}
 
 	return nil
 }
 
-func CloseDB() {
-    if dao != nil {
-        dao.Close()
+func (dao *Dao) CloseDB() {
+    if dao.conn != nil {
+        dao.conn.Close()
     }
 }
 
-func ValidateUser(username, password string) (bool, error) {
-    debug.PrintInfo(ValidateUser, "Attempting to auth user", username)
+func (dao *Dao) ValidateUser(username, password string) (bool, error) {
+    debug.PrintInfo(dao.ValidateUser, "Attempting to auth user", username)
 
     var hashedPassword []byte
-    err := dao.QueryRow(authUserQuery, username).Scan(&hashedPassword)
+    err := dao.conn.QueryRow(authUserQuery, username).Scan(&hashedPassword)
 
     if err != nil {
-        debug.PrintError(ValidateUser, err)
+        debug.PrintError(dao.ValidateUser, err)
         return false, err
     }
 
     err = bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
     
     if err == bcrypt.ErrMismatchedHashAndPassword {
-        debug.PrintError(ValidateUser, err)
+        debug.PrintError(dao.ValidateUser, err)
         return false, nil
     }
     
     if err != nil {
-        debug.PrintError(ValidateUser, err)
+        debug.PrintError(dao.ValidateUser, err)
         return false, err
     }
 
-    debug.PrintSucc(ValidateUser, "Succ Auth", username)
+    debug.PrintSucc(dao.ValidateUser, "Succ Auth", username)
     return true, nil
 }
 
-func GetUserId(username string) (string, error) {
-    debug.PrintInfo(GetUserId, "getting user id")
+func (dao *Dao) GetUserId(username string) (string, error) {
+    debug.PrintInfo(dao.GetUserId, "getting user id")
     var userId string
 
-    err := dao.QueryRow(userIdQuery, username).Scan(&userId)
+    err := dao.conn.QueryRow(userIdQuery, username).Scan(&userId)
 
     if err != nil {
-        debug.PrintError(GetUserId, err)
+        debug.PrintError(dao.GetUserId, err)
         return "", err
     }
     
-    debug.PrintSucc(GetUserId, "got user id")
+    debug.PrintSucc(dao.GetUserId, "got user id")
     return userId, nil
 }
 
-func AddExpense(expense *models.Expense) (bool, error) {
-    debug.PrintInfo(AddExpense, "attempting to add expense")
+func (dao *Dao) AddExpense(expense *models.Expense) (bool, error) {
+    debug.PrintInfo(dao.AddExpense, "attempting to add expense")
 
-    _, err := dao.Exec(
+    _, err := dao.conn.Exec(
         addExpenseQuery, 
         expense.UserId,
         expense.Name,
@@ -97,20 +89,20 @@ func AddExpense(expense *models.Expense) (bool, error) {
     )
 
     if err != nil {
-        debug.PrintError(AddExpense, err)
+        debug.PrintError(dao.AddExpense, err)
         return false, err
     }
 
-    debug.PrintSucc(AddExpense, "expense added!")
+    debug.PrintSucc(dao.AddExpense, "expense added!")
     return true, nil
 }
 
-func UpdateExpense(expense *models.Expense) (bool, error) {
-    debug.PrintInfo(UpdateExpense, "Attempting to update expense. expense:", expense.Name)
+func (dao *Dao) UpdateExpense(expense *models.Expense) (bool, error) {
+    debug.PrintInfo(dao.UpdateExpense, "Attempting to update expense. expense:", expense.Name)
 
-    debug.PrintInfo(UpdateExpense, "CATEGORY:", expense.Category)
+    debug.PrintInfo(dao.UpdateExpense, "CATEGORY:", expense.Category)
 
-    _, err := dao.Exec(
+    _, err := dao.conn.Exec(
         updateExpenseQuery,
         expense.Category,
         expense.Name,
@@ -119,16 +111,16 @@ func UpdateExpense(expense *models.Expense) (bool, error) {
     )
     
     if err != nil {
-        debug.PrintError(UpdateExpense, err)
+        debug.PrintError(dao.UpdateExpense, err)
         return false, err
     }
 
-    debug.PrintSucc(UpdateExpense, "expense added!")
+    debug.PrintSucc(dao.UpdateExpense, "expense added!")
     return true, nil
 }
 
-func GetExpensesForCurrentMonth(userId string) (*[]models.Expense, error) {
-    debug.PrintInfo(GetExpensesForCurrentMonth, "attempting to get monthly expense")
+func (dao *Dao) GetExpensesForCurrentMonth(userId string) (*[]models.Expense, error) {
+    debug.PrintInfo(dao.GetExpensesForCurrentMonth, "attempting to get monthly expense")
 
     now := time.Now()
     firstOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
@@ -138,16 +130,16 @@ func GetExpensesForCurrentMonth(userId string) (*[]models.Expense, error) {
     startOfMonthStr := firstOfMonth.Format("2006-01-02 15:04:05")
     nextMonthStr := nextMonth.Format("2006-01-02 15:04:05")
 
-    debug.PrintInfo(GetExpensesForCurrentMonth, "from ", startOfMonthStr, " to ", nextMonthStr)
+    debug.PrintInfo(dao.GetExpensesForCurrentMonth, "from ", startOfMonthStr, " to ", nextMonthStr)
 
-    rows, err := dao.Query(
+    rows, err := dao.conn.Query(
         monthlyExpensesQuery,
         startOfMonthStr,
         nextMonthStr,
     )
 
     if err != nil {
-        debug.PrintError(GetExpensesForCurrentMonth, err)
+        debug.PrintError(dao.GetExpensesForCurrentMonth, err)
         return nil, err
     }
     defer rows.Close()
@@ -166,38 +158,30 @@ func GetExpensesForCurrentMonth(userId string) (*[]models.Expense, error) {
         )
 
         if err != nil {
-            debug.PrintError(GetExpensesForCurrentMonth, err)
+            debug.PrintError(dao.GetExpensesForCurrentMonth, err)
             return nil, err
         }
 
-        // this seems messy
-        // TODO: find better way to do this
-        if expense.UserId == userId {
-            expense.IsOwner = true
-            debug.PrintInfo(GetExpensesForCurrentMonth, "expense is owner")
-        } else {
-            expense.IsOwner = false
-        }
+        expense.IsOwner = expense.UserId == userId
 
         expenses = append(expenses, expense)
-        debug.PrintInfo(GetExpensesForCurrentMonth, "expense:", expense.Name)
+        debug.PrintInfo(dao.GetExpensesForCurrentMonth, "expense:", expense.Name)
     }
 
     if err = rows.Err(); err != nil {
-        debug.PrintError(GetExpensesForCurrentMonth, err)
+        debug.PrintError(dao.GetExpensesForCurrentMonth, err)
         return nil, err
     }
 
-    debug.PrintSucc(GetExpensesForCurrentMonth, "got monthly expenses")
+    debug.PrintSucc(dao.GetExpensesForCurrentMonth, "got monthly expenses")
     return &expenses, nil
 }
 
-
-func GetExpense(expenseId string) (*models.Expense, error) {
-    debug.PrintInfo(GetExpense, "getting expense w/ id: ", expenseId)
+func (dao *Dao) GetExpense(expenseId string) (*models.Expense, error) {
+    debug.PrintInfo(dao.GetExpense, "getting expense w/ id: ", expenseId)
     var expense models.Expense
 
-    err := dao.QueryRow(getExpenseQuery, expenseId).Scan(
+    err := dao.conn.QueryRow(getExpenseQuery, expenseId).Scan(
         &expense.ExpenseId, 
         &expense.Name, 
         &expense.Amount, 
@@ -209,20 +193,20 @@ func GetExpense(expenseId string) (*models.Expense, error) {
 
     if err != nil {
         if err == sql.ErrNoRows {
-            debug.PrintError(GetExpense, err)
+            debug.PrintError(dao.GetExpense, err)
             return nil, errors.New("expense not found")
         }
 
-        debug.PrintError(GetExpense, err)
+        debug.PrintError(dao.GetExpense, err)
         return nil, err
     }
 
-    debug.PrintSucc(GetExpense, "expense found!")
+    debug.PrintSucc(dao.GetExpense, "expense found!")
     return &expense, nil
 }
 
-func GetCategoriesForCurrentMonth() (*[]models.Category, error) {
-    debug.PrintInfo(GetCategoriesForCurrentMonth, "Getting categories")
+func (dao *Dao) GetCategoriesForCurrentMonth() (*[]models.Category, error) {
+    debug.PrintInfo(dao.GetCategoriesForCurrentMonth, "Getting categories")
     now := time.Now()
     firstOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
     nextMonth := firstOfMonth.AddDate(0, 1, 0)
@@ -230,9 +214,9 @@ func GetCategoriesForCurrentMonth() (*[]models.Category, error) {
     startOfMonthStr := firstOfMonth.Format("2006-01-02 15:04:05")
     nextMonthStr := nextMonth.Format("2006-01-02 15:04:05")
 
-    rows, err := dao.Query(monthlyCategoriesQuery, startOfMonthStr, nextMonthStr)
+    rows, err := dao.conn.Query(monthlyCategoriesQuery, startOfMonthStr, nextMonthStr)
     if err != nil {
-        debug.PrintError(GetCategoriesForCurrentMonth, err)
+        debug.PrintError(dao.GetCategoriesForCurrentMonth, err)
         return nil, err
     }
     defer rows.Close()
@@ -242,17 +226,17 @@ func GetCategoriesForCurrentMonth() (*[]models.Category, error) {
         var category models.Category
         err := rows.Scan(&category.Name, &category.Balance, &category.Limit)
         if err != nil {
-            debug.PrintError(GetCategoriesForCurrentMonth, err)
+            debug.PrintError(dao.GetCategoriesForCurrentMonth, err)
             return nil, err
         }
         categories = append(categories, category)
     }
 
     if err = rows.Err(); err != nil {
-        debug.PrintError(GetCategoriesForCurrentMonth, err)
+        debug.PrintError(dao.GetCategoriesForCurrentMonth, err)
         return nil, err
     }
 
-    debug.PrintSucc(GetCategoriesForCurrentMonth, "Got categories!")
+    debug.PrintSucc(dao.GetCategoriesForCurrentMonth, "Got categories!")
     return &categories, nil
 }
