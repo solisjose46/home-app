@@ -5,6 +5,7 @@ import (
     "home-app/app/models"
     "home-app/app/dao"
     "github.com/solisjose46/pretty-print/debug"
+    "fmt"
 )
 
 func BuildFinanceTrack() (*models.FinanceTrack, error) {
@@ -31,6 +32,9 @@ func BuildFinanceFeed(userId string) (*models.FinanceFeed, error) {
 	debug.PrintInfo(BuildFinanceFeed, "building finance feed")
 
 	expenses, err := dao.GetExpensesForCurrentMonth(userId)
+
+    expensesCount := len(*expenses)
+    debug.PrintInfo(BuildFinanceFeed, fmt.Sprintf("got %d expenses", expensesCount))    
 
 	if err != nil {
 		debug.PrintError(BuildFinanceFeed, err)

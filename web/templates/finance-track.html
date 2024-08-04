@@ -1,15 +1,15 @@
 {{ define "finance-track" }}
-<div class="finance-substate">
+<div id="finance-substate">
     {{ if .FinanceTrackConfirm }}
-        {{ template "finance-track-confirm" . }}
+        {{ template "finance-track-confirm" .FinanceTrackConfirm }}
     {{ end }}
     {{ if .ServerResponse }}
-        {{ template "server-response" . }}
+        {{ template "server-response" .ServerResponse }}
     {{ end }}
     <div>
         <div>Track</div>
         <div>
-            <button hx-get="/finance/feed">Feed</button>
+            <button hx-get="/finance/feed" hx-target="#finance-substate" hx-swap="outerHTML">Feed</button>
         </div>
     </div>
     <div>

@@ -2,26 +2,26 @@
 <div>
     <div>
         <div></div>
-        <div hx-get="/finance/feed">x</div>
+        <div hx-get="/finance/feed" hx-target="#finance-substate" hx-swap="outerHTML">x</div>
     </div>
     <div>
-        <form hx-post="/finance/feed/edit" hx-target="#finance-substate" hx-swap="outerHTML">
-            <input type="hidden" name="expense-id" value="{{ .ExpenseId }}" readonly>
+        <form hx-post="/finance/feed/confirm" hx-target="#finance-substate" hx-swap="outerHTML">
+            <input type="hidden" name="expense-id" value="{{ .Expense.ExpenseId }}" readonly>
 			<label for="name">Name</label>
-			<input type="text" id="name" name="name" value="{{ .Name }}" required>
+			<input type="text" id="name" name="name" value="{{ .Expense.Name }}" required>
 			<label for="amount">Amount</label>
-			<input type="number" id="amount" name="amount" step="0.01" value="{{ .Amount }}" required>
+			<input type="number" id="amount" name="amount" step="0.01" value="{{ .Expense.Amount }}" required>
 			<label for="category">Category</label>
 			<select id="category" name="category" required>
-				<option value="sdo" {{if eq .Category "sdo" }} selected {{ end }}>Sea dine out</option>
-				<option value="sg" {{if eq .Category "sg" }} selected {{ end }}>Sea groceries</option>
-				<option value="pdo" {{if eq .Category "pdo" }} selected {{ end }}>Phx dine out</option>
-                <option value="sc" {{if eq .Category "sc" }} selected {{ end }}>Sea cleaning</option>
-                <option value="pg" {{if eq .Category "pg" }} selected {{ end }}>Phx groceries</option>
+				<option value="Seattle Dine Out" {{if eq .Expense.Category "Seattle Dine Out" }} selected {{ end }}>Seattle Dine Out</option>
+				<option value="Seattle Groceries" {{if eq .Expense.Category "Seattle Groceries" }} selected {{ end }}>Seattle Groceries</option>
+				<option value="Phx Dine Out" {{if eq .Expense.Category "Phx Dine Out" }} selected {{ end }}>Phx Dine Out</option>
+                <option value="Seattle Cleaning" {{if eq .Expense.Category "Seattle Cleaning" }} selected {{ end }}>Seattle Cleaning</option>
+                <option value="Phx Grocerie" {{if eq .Expense.Category "pg" }} selected {{ end }}>Phx Groceries</option>
 			</select>
             <button type="submit">Edit</button>
         </form>
-        <button hx-get="/finance/feed">Cancel</button>
+        <button hx-get="/finance/feed" hx-target="#finance-substate" hx-swap="outerHTML">Cancel</button>
     </div>
 </div>
 {{ end }}

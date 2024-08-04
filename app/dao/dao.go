@@ -16,7 +16,7 @@ const (
     userIdQuery             = "SELECT userId FROM users WHERE username = ?"
     getExpenseQuery         = "SELECT e.expenseId AS ExpenseId, e.name AS Name, e.amount AS Amount, c.categoryName AS Category, u.username AS Username, e.userId AS UserId, e.createdAt AS Datetime FROM expenses e JOIN users u ON e.userId = u.userId JOIN categories c ON e.categoryId = c.categoryId WHERE e.expenseId = ?"
     addExpenseQuery         = "INSERT INTO expenses (userId, name, amount, category) VALUES (?, ?, ?, ?)"
-    updateExpenseQuery      = "UPDATE expenses SET name = ?, amount = ?, category = ? WHERE expenseId = ?"
+    updateExpenseQuery      = "WITH CategoryID AS (SELECT categoryId FROM categories WHERE categoryName = ?) UPDATE expenses SET name = ?, amount = ?, categoryId = (SELECT categoryId FROM CategoryID) WHERE expenseId = ?"
     monthlyExpensesQuery    = "SELECT e.expenseId AS ExpenseId, e.name AS Name, e.amount AS Amount, c.categoryName AS Category, u.username AS Username, e.userId AS UserId, e.createdAt AS Datetime FROM expenses e JOIN users u ON e.userId = u.userId JOIN categories c ON e.categoryId = c.categoryId WHERE e.createdAt BETWEEN ? AND ? ORDER BY e.createdAt DESC"
     monthlyCategoriesQuery  = "SELECT c.categoryName, SUM(e.amount) as balance, c.categoryLimit FROM categories c JOIN expenses e ON c.categoryId = e.categoryId WHERE e.createdAt >= ? AND e.createdAt < ? GROUP BY c.categoryName, c.categoryLimit"
 )
@@ -108,11 +108,13 @@ func AddExpense(expense *models.Expense) (bool, error) {
 func UpdateExpense(expense *models.Expense) (bool, error) {
     debug.PrintInfo(UpdateExpense, "Attempting to update expense. expense:", expense.Name)
 
+    debug.PrintInfo(UpdateExpense, "CATEGORY:", expense.Category)
+
     _, err := dao.Exec(
-        updateExpenseQuery, 
+        updateExpenseQuery,
+        expense.Category,
         expense.Name,
         expense.Amount,
-        expense.Category,
         expense.ExpenseId,
     )
     
@@ -170,11 +172,15 @@ func GetExpensesForCurrentMonth(userId string) (*[]models.Expense, error) {
 
         // this seems messy
         // TODO: find better way to do this
-        if expense.ExpenseId == userId {
+        if expense.UserId == userId {
             expense.IsOwner = true
+            debug.PrintInfo(GetExpensesForCurrentMonth, "expense is owner")
         } else {
             expense.IsOwner = false
         }
+
+        expenses = append(expenses, expense)
+        debug.PrintInfo(GetExpensesForCurrentMonth, "expense:", expense.Name)
     }
 
     if err = rows.Err(); err != nil {

@@ -7,6 +7,7 @@ import (
     "home-app/app/dao"
     "home-app/app/util"
     "github.com/solisjose46/pretty-print/debug"
+    "fmt"
 )
 
 const (
@@ -350,10 +351,11 @@ func GetFinanceFeed(userId string) (string, error) {
     htmlFinanceFeed := util.GetTmplPath(TmplFinanceFeed)
     htmlFinanceFeedEdit := util.GetTmplPath(TmplFinanceFeedEdit)
     htmlFinanceFeedConfirm := util.GetTmplPath(TmplFinanceFeedConfirm)
+    htmlServerResponse := util.GetTmplPath(TmplServerResponse)
     
     tmpl, err := template.ParseFiles(
         htmlFinanceFeed, htmlFinanceFeedEdit,
-        htmlFinanceFeedConfirm,
+        htmlFinanceFeedConfirm, htmlServerResponse,
     )
     
     if err != nil {
@@ -363,17 +365,16 @@ func GetFinanceFeed(userId string) (string, error) {
 
     financeFeed, err := BuildFinanceFeed(userId)
 
+    expensesCount := len(*financeFeed.Expenses)
+    debug.PrintInfo(GetFinanceFeed, "expenses count:", fmt.Sprintf("%d", expensesCount))
+
     if err != nil {
         debug.PrintError(GetFinanceFeed, err)
         return "", err
     }
 
-    
-    finance := models.Finance{
-        FinanceFeed: financeFeed,
-    }
     var buf bytes.Buffer
-    err = tmpl.ExecuteTemplate(&buf, TmplFinance, finance)
+    err = tmpl.ExecuteTemplate(&buf, TmplFinanceFeed, financeFeed)
     
     if err != nil {
         debug.PrintError(GetFinanceFeed, err)
@@ -390,10 +391,11 @@ func getFinanceFeedServerResponse(userId string, r *models.ServerResponse) (stri
     htmlFinanceFeed := util.GetTmplPath(TmplFinanceFeed)
     htmlFinanceFeedEdit := util.GetTmplPath(TmplFinanceFeedEdit)
     htmlFinanceFeedConfirm := util.GetTmplPath(TmplFinanceFeedConfirm)
+    htmlServerResponse := util.GetTmplPath(TmplServerResponse)
     
     tmpl, err := template.ParseFiles(
         htmlFinanceFeed, htmlFinanceFeedEdit,
-        htmlFinanceFeedConfirm,
+        htmlFinanceFeedConfirm, htmlServerResponse,
     )
 
     if err != nil {
@@ -426,10 +428,11 @@ func getFinanceFeedEdit(expense *models.Expense) (string, error) {
     htmlFinanceFeed := util.GetTmplPath(TmplFinanceFeed)
     htmlFinanceFeedEdit := util.GetTmplPath(TmplFinanceFeedEdit)
     htmlFinanceFeedConfirm := util.GetTmplPath(TmplFinanceFeedConfirm)
+    htmlServerResponse := util.GetTmplPath(TmplServerResponse)
     
     tmpl, err := template.ParseFiles(
         htmlFinanceFeed, htmlFinanceFeedEdit,
-        htmlFinanceFeedConfirm,
+        htmlFinanceFeedConfirm, htmlServerResponse,
     )
 
     if err != nil {
@@ -557,11 +560,6 @@ func PostFinanceFeedConfirm(expense *models.Expense) (string, error) {
 
     success, err := dao.UpdateExpense(expense)
 
-    if err != nil {
-        debug.PrintError(PostFinanceFeedConfirm, err)
-        return "", nil
-    }
-
     if !success {
         debug.PrintInfo(PostFinanceFeedConfirm, "update expense issue")
         return getFinanceFeedServerResponse(
@@ -571,6 +569,11 @@ func PostFinanceFeedConfirm(expense *models.Expense) (string, error) {
                 ReturnEndpoint: util.FinanceFeedEndpoint,
             },
         )
+    }
+
+    if err != nil {
+        debug.PrintError(PostFinanceFeedConfirm, err)
+        return "", nil
     }
 
     debug.PrintInfo(PostFinanceFeedConfirm, "returning finance feed confirm server response")

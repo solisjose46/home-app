@@ -1,25 +1,25 @@
 {{ define "finance-feed" }}
-<div class="finance-substate">
+<div id="finance-substate">
     {{ if .FinanceFeedEdit }}
-        {{ template "finance-feed-edit" . }}
+        {{ template "finance-feed-edit" .FinanceFeedEdit }}
     {{ end }}
         
     {{ if .FinanceFeedConfirm }}
-        {{ template "finance-feed-confirm" . }}
+        {{ template "finance-feed-confirm" .FinanceFeedConfirm }}
     {{ end }}
 
     {{ if .ServerResponse }}
-        {{ template "server-response" . }}
+        {{ template "server-response" .ServerResponse }}
     {{ end }}
     <div>
-        <div><button hx-get="/finance/track">Track</button></div>
+        <div><button hx-get="/finance/track" hx-target="#finance-substate" hx-swap="outerHTML">Track</button></div>
         <div>Feed</div>
     </div>
     {{ if .Expenses }}
-    {{ range .Expenses }}
+        {{ range .Expenses }}
     <div>
         <div>
-            <div>{{ .User }}</div>
+            <div>{{ .Username }}</div>
             {{ if .IsOwner }}
             <div>
                 <form hx-post="/finance/feed/edit" hx-target="#finance-substate" hx-swap="outerHTML">
@@ -36,7 +36,7 @@
             Spent ${{ .Amount }} on {{ .Name }} @ {{ .Datetime }} [{{ .Category }}]
         </div>
     </div>
-    {{ end }}
+        {{ end }}
     {{ end }}
 </div>
 {{ end }}
