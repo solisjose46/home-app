@@ -16,3 +16,7 @@ rm home.db
 
 ## other db
 .help for list of commands
+
+
+## issues to fix
+- when expense is updated then redirected to finance feed but rest of finance feed page is removed
