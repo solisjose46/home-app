@@ -1,14 +1,15 @@
 {{ define "server-response" }}
-<div>
-    <div>
-        <div></div>
-        <div hx-get="{{ .ReturnEndpoint }}" hx-target="{{ .ReturnTarget }}">X</div>
+<div class="server-response">
+    <div hx-get="{{ .ReturnEndpoint }}" hx-target="{{ .ReturnTarget }}">
+        <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <line x1="4" y1="4" x2="20" y2="20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+            <line x1="20" y1="4" x2="4" y2="20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          
     </div>
+    <div>{{ .Message }}</div>
     <div>
-        <div>{{ .Message }}</div>
-        <div>
-            <button hx-get="{{ .ReturnEndpoint }}" hx-target="{{ .ReturnTarget }}">Ok</button>
-        </div>
+        <button hx-get="{{ .ReturnEndpoint }}" hx-target="{{ .ReturnTarget }}">Ok</button>
     </div>
 </div>
 {{ end }}
