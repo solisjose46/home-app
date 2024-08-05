@@ -7,9 +7,11 @@
         {{ template "server-response" .ServerResponse }}
     {{ end }}
     <div>
-        <div>Track</div>
         <div>
-            <button hx-get="/finance/feed" hx-target="#finance-substate" hx-swap="outerHTML">Feed</button>
+            <button class="nb-button green">Track</button>
+        </div>
+        <div>
+            <button class="nb-button default" hx-get="/finance/feed" hx-target="#finance-substate" hx-swap="outerHTML">Feed</button>
         </div>
     </div>
     <div>
@@ -19,7 +21,7 @@
     </div>
     <div>
         {{ range .Categories }}
-        <div>
+        <div class="card">
             <div>{{ .Name }}</div>
             <div>
                 <div>Bar here</div>
@@ -29,20 +31,23 @@
         {{ end }}
     </div>
     <div>
-		<form hx-post="/finance/track" hx-target="#finance-substate" hx-swap="outerHTML">
-			<label for="name">Name</label>
-			<input type="text" id="name" name="name" required>
-			<label for="amount">Amount</label>
-			<input type="number" id="amount" name="amount" step="0.01" required>
-			<label for="category">Category</label>
-			<select id="category" name="category" required>
+		<form class="dialog" hx-post="/finance/track" hx-target="#finance-substate" hx-swap="outerHTML">
+			<label class="nb-label" for="name">Name</label>
+			<input class="nb-input default" type="text" id="name" name="name" required>
+			<label class="nb-label" for="amount">Amount</label>
+			<input class="nb-input default" type="number" id="amount" name="amount" step="0.01" required>
+			<label class="nb-label" for="category">Category</label>
+			<select class="dropdown" id="category" name="category" required>
 				<option value="Seattle Dine Out">Seattle Dine Out</option>
 				<option value="Seattle Groceries">Seattle Groceries</option>
 				<option value="Phx Dine Out">Phx Dine Out</option>
                 <option value="Seattle Cleaning">Sea cleaning</option>
                 <option value="Phx Groceries">Phx Groceries</option>
 			</select>
-			<input type="submit" value="Submit">
+            <div class="button-container">
+                <button class="nb-button green" type="submit">Add Expense</button>
+                <button class="nb-button pale-red" type="reset">Reset</button>
+            </div>
 		</form>
     </div>
 </div>

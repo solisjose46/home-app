@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="/static/login.css">
-    <link rel="stylesheet" href="/static/server-response.css">
+    <link rel="stylesheet" href="/static/index.min.css">
 </head>
 <body>
     <div>
@@ -18,13 +17,15 @@
                 <h2>Login</h2>
             </div>
             <div>
-                <form hx-post="/login" hx-target="body">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" placeholder="username" required>
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" placeholder="Password" required><br>
-                    <button type="submit">Login</button>
-                    <button type="reset" class="reset">Reset</button>
+                <form class="dialog" hx-post="/login" hx-target="body">
+                    <label class="nb-label" for="username">Username</label>
+                    <input class="nb-input default" type="text" id="username" name="username" placeholder="username" required>
+                    <label class="nb-label" for="password">Password</label>
+                    <input class="nb-input default" type="password" id="password" name="password" placeholder="Password" required>
+                    <div class="button-container">
+                        <button class="nb-button green" type="submit">Login</button>
+                        <button class="nb-button pale-red" type="reset" class="reset">Reset</button>
+                    </div>
                 </form>
             </div>
         </div>

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
+    <link rel="stylesheet" href="/static/index.min.css">
 </head>
 <body>
     <div>
@@ -12,9 +13,6 @@
             <h2 hx-get="/home" hx-target="body">
                 Family
             </h2>
-            <div>
-                <button hx-post="/logout" hx-target="body">Logout</button>
-            </div>
         </div>
         {{ if .FinanceTrack }}
             {{ template "finance-track" .FinanceTrack }}
@@ -22,6 +20,9 @@
             {{ template "finance-feed" .FinanceFeed }}
         {{ end }}
         <div>
+        </div>
+        <div>
+            <button class="nb-button orange" hx-post="/logout" hx-target="body">logout</button>
         </div>
     </div>
     <script src="/static/htmx.min.js"></script>
