@@ -1,8 +1,13 @@
 {{ define "finance-track-confirm" }}
-<div>
-    <div>
-        <div>Confirm</div>
-        <div hx-get="/finance/track" hx-target="#finance-substate" hx-swap="outerHTML">X</div>
+<div class="dialog">
+    <div class="modal-header">
+        <h3>Confirm</h3>
+        <label hx-get="/finance/track" hx-target="#finance-substate" hx-swap="outerHTML" for="modal" class="close">
+            <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+              </svg>
+              
+        </label>
     </div>
     <div>
         <div>Are you sure you want to add the following expense?</div>
@@ -13,11 +18,11 @@
                     <input type="hidden" name="name" value="{{ .Expense.Name }}" readonly>
                     <input type="hidden" name="amount" value="{{ .Expense.Amount }}" readonly>
                     <input type="hidden" name="category" value="{{ .Expense.Category }}" readonly>
-                    <button type="submit">Yes</button>
+                    <button class="nb-button green" type="submit">Yes</button>
                 </form>
             </div>
             <div>
-                <button hx-get="/finance/track" hx-target="#finance-substate" hx-swap="outerHTML">Cancel</button>
+                <button class="nb-button pale-red" hx-get="/finance/track" hx-target="#finance-substate" hx-swap="outerHTML">Cancel</button>
             </div>
         </div>
     </div>
