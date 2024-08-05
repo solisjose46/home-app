@@ -20,21 +20,25 @@
     <div>
         <div>
             <div>{{ .Username }}</div>
-            {{ if .IsOwner }}
-            <div>
-                <form hx-post="/finance/feed" hx-target="#finance-substate" hx-swap="outerHTML">
-                    <input type="hidden" name="expense-id" value="{{ .ExpenseId }}" readonly>
-                    <input type="hidden" name="name" value="{{ .Name }}" readonly>
-                    <input type="hidden" name="amount" value="{{ .Amount }}" readonly>
-                    <input type="hidden" name="category" value="{{ .Category }}" readonly>
-                    <button type="submit">Edit</button>
-                </form>
-            </div>
-            {{ end }}
         </div>
         <div>
             Spent ${{ .Amount }} on {{ .Name }} @ {{ .Datetime }} [{{ .Category }}]
         </div>
+        {{ if .IsOwner }}
+        <div>
+            <form hx-post="/finance/feed" hx-target="#finance-substate" hx-swap="outerHTML">
+                <input type="hidden" name="expense-id" value="{{ .ExpenseId }}" readonly>
+                <input type="hidden" name="name" value="{{ .Name }}" readonly>
+                <input type="hidden" name="amount" value="{{ .Amount }}" readonly>
+                <input type="hidden" name="category" value="{{ .Category }}" readonly>
+                <button type="submit">
+                    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 17.25V21h3.75l10.825-10.825-3.75-3.75L3 17.25zm12.9-10.45l3.75 3.75 1.5-1.5-3.75-3.75-1.5 1.5z" fill="black"/>
+                      </svg>
+                </button>
+            </form>
+        </div>
+        {{ end }}
     </div>
         {{ end }}
     {{ end }}
