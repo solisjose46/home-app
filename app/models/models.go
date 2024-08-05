@@ -5,6 +5,7 @@ import "time"
 type ServerResponse struct {
 	Message        string
 	ReturnEndpoint string
+	ReturnTarget  string
 }
 
 type FinanceFeedEdit struct {

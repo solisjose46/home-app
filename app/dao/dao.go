@@ -41,15 +41,21 @@ func (dao *Dao) ValidateUser(username, password string) (bool, error) {
     var hashedPassword []byte
     err := dao.conn.QueryRow(authUserQuery, username).Scan(&hashedPassword)
 
+
+    if err == sql.ErrNoRows{
+        debug.PrintInfo(dao.ValidateUser, "User not found")
+        return false, nil
+    }
+
     if err != nil {
         debug.PrintError(dao.ValidateUser, err)
-        return false, err
+        return false, errors.New("Error querying user")
     }
 
     err = bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
     
     if err == bcrypt.ErrMismatchedHashAndPassword {
-        debug.PrintError(dao.ValidateUser, err)
+        debug.PrintInfo(dao.ValidateUser, "Invalid password for user")
         return false, nil
     }
     

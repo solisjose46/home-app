@@ -16,4 +16,6 @@ const(
 	FailedToUpdateExpense 			= "Sorry! Failed to update expense"
 	SuccAddExpense 					= "Expense successfully added!"
 	SuccUpdateExpense				= "Expense successfully updated!"
+	ReturnTargetBody 				= "body"
+	ReturnTargetFinance 			= "#finance-substate"
 )

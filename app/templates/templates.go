@@ -55,6 +55,7 @@ func (parser *TemplateParser) PostLogin(username, password string) (*string, err
             &models.ServerResponse{
                 Message: util.InvalidInput,
                 ReturnEndpoint: util.LoginEndpoint,
+                ReturnTarget: util.ReturnTargetBody,
             },
         )
 	}
@@ -74,6 +75,7 @@ func (parser *TemplateParser) PostLogin(username, password string) (*string, err
             &models.ServerResponse{
                 Message: util.InvalidInput,
                 ReturnEndpoint: util.LoginEndpoint,
+                ReturnTarget: util.ReturnTargetBody,
             },
         )
     }

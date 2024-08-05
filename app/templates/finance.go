@@ -104,6 +104,7 @@ func (parser *TemplateParser) PostFinanceTrack(expense *models.Expense) (*string
         financeTrack.ServerResponse = &models.ServerResponse{
             Message: util.InvalidExpenseInput,
             ReturnEndpoint: util.FinanceTrackEndpoint,
+            ReturnTarget: util.ReturnTargetFinance,
         }
     } else {
         financeTrack.FinanceTrackConfirm = &models.FinanceTrackConfirm{
@@ -130,6 +131,7 @@ func (parser *TemplateParser) PostFinanceTrackConfirm(expense *models.Expense) (
         financeTrack.ServerResponse = &models.ServerResponse{
             Message: util.InvalidExpenseInput,
             ReturnEndpoint: util.FinanceTrackEndpoint,
+            ReturnTarget: util.ReturnTargetFinance,
         }
 
         return parser.GetFinanceTrack(financeTrack)
@@ -144,6 +146,7 @@ func (parser *TemplateParser) PostFinanceTrackConfirm(expense *models.Expense) (
 
     serverResponse := &models.ServerResponse{
         ReturnEndpoint: util.FinanceTrackEndpoint,
+        ReturnTarget: util.ReturnTargetFinance,
     }
 
     if !succ {
@@ -206,6 +209,7 @@ func (parser *TemplateParser) PostFinanceFeed(expense *models.Expense) (*string,
         financeFeed.ServerResponse = &models.ServerResponse{
             Message: util.InvalidExpenseInput,
             ReturnEndpoint: util.FinanceFeedEndpoint,
+            ReturnTarget: util.ReturnTargetFinance,
         }
     } else {
         financeFeed.FinanceFeedEdit = &models.FinanceFeedEdit{
@@ -232,6 +236,7 @@ func (parser *TemplateParser) PostFinanceFeedEdit(expense *models.Expense) (*str
         financeFeed.ServerResponse = &models.ServerResponse{
             Message: util.InvalidExpenseInput,
             ReturnEndpoint: util.FinanceFeedEndpoint,
+            ReturnTarget : util.ReturnTargetFinance,
         }
         return parser.GetFinanceFeed(financeFeed)
     }
@@ -266,6 +271,7 @@ func (parser *TemplateParser) PostFinanceFeedConfirm(expense *models.Expense) (*
         financeFeed.ServerResponse = &models.ServerResponse{
             Message: util.InvalidExpenseInput,
             ReturnEndpoint: util.FinanceFeedEndpoint,
+            ReturnTarget: util.ReturnTargetFinance,
         }
         return parser.GetFinanceFeed(financeFeed)
     }
@@ -277,6 +283,7 @@ func (parser *TemplateParser) PostFinanceFeedConfirm(expense *models.Expense) (*
         financeFeed.ServerResponse = &models.ServerResponse{
             Message: util.FailedToUpdateExpense,
             ReturnEndpoint: util.FinanceFeedEndpoint,
+            ReturnTarget: util.ReturnTargetFinance,
         }
         return parser.GetFinanceFeed(financeFeed)
     }
@@ -289,6 +296,7 @@ func (parser *TemplateParser) PostFinanceFeedConfirm(expense *models.Expense) (*
     financeFeed.ServerResponse = &models.ServerResponse{
         Message: util.SuccUpdateExpense,
         ReturnEndpoint: util.FinanceFeedEndpoint,
+        ReturnTarget: util.ReturnTargetFinance,
     }
 
     debug.PrintInfo(parser.PostFinanceFeedConfirm, "returning finance feed confirm server response")
