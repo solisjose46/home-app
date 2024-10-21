@@ -46,3 +46,10 @@ table {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
+.fb-container {
+  display: flex;
+  flex-direction: column;
+}
+.fb-row {
+  text-align: center;
+}

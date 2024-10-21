@@ -8,21 +8,37 @@
     <title>Login</title>
 </head>
 <body>
-    <div>
+    <div class="fb-container">
         {{ if .ServerResponse }}
             {{ template "server-response" .ServerResponse }}
         {{ end }}
-        <div>
+        <div class="fb-row">
             <h2>Login</h2>
         </div>
-        <div>
+        <div class="fb-row">
             <form hx-post="/login" hx-target="body">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="username" required>
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Password" required><br>
-                <button type="submit">Login</button>
-                <button type="reset" class="reset">Reset</button>
+              <div class="fb-container">
+                <div class="fb-row">
+                  <label for="username">Username</label>
+                </div>
+                <div class="fb-row">
+                  <input type="text" id="username" name="username" placeholder="username" required>
+                </div>
+                <div class="fb-row">
+                  <label for="password">Password</label>
+                </div>
+                <div class="fb-row">
+                 <input type="password" id="password" name="password" placeholder="Password" required>
+                </div>
+              </div>
+              <div class="fb-container fb-row">
+                <div class="fb-row">
+                 <button type="submit">Login</button>
+                </div>
+                <div class="fb-row">
+                  <button type="reset" class="reset">Reset</button>
+                </div>
+              </div>
             </form>
         </div>
     </div>
